@@ -1,0 +1,9 @@
+{
+  "server_urls": "http://*:17700",
+  "db_port": "3306",
+  "db_pass": "9+PKHxdp4R+epHu4JY7Esg==;xwT3e397kddJWFa0cbXNEA==",
+  "db_name": "ProductPlanning",
+  "db_user": "root",
+  "app_type": 5,
+  "db_timeout": 60
+}

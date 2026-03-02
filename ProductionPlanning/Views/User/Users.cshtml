@@ -1,0 +1,163 @@
+﻿@using ProductionPlanning.ViewModel.User
+@model List<UserViewModel>
+
+@{
+    ViewData["Title"] = "Пользователи";
+}
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0">Управление пользователями</h1>
+            <p class="text-muted mb-0">Администрирование учетных записей пользователей</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a class="btn btn-success" href="@Url.Action("AddUser", "User")">
+                <svg width="16" height="16" fill="currentColor" class="bi bi-person-plus-fill" viewBox="0 0 16 16">
+                    <path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
+                    <path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5" />
+                </svg>
+                <i class="bi bi-person-plus me-1"></i> Добавить пользователя
+            </a>
+        </div>
+    </div>
+</div>
+<hr />
+<div id="usersPartialContainer">
+    @{
+        await Html.RenderPartialAsync("_UsersPartialView", Model);
+    }
+</div>
+
+<!-- Модальное окно -->
+<div class="modal fade" id="modalDeleteUser" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLabel">Удаление</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы действительно хотите удалить пользователя <strong id="userNameToDelete"></strong>?</p>
+                <p class="text-danger">Это действие нельзя отменить!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteUser">Удалить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let currentUserIdToDelete = null;
+
+        // Обработчик для кнопок удаления в таблице
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('.delete-user-btn')) {
+                const button = e.target.closest('.delete-user-btn');
+                const userId = button.getAttribute('data-user-id');
+                const userName = button.getAttribute('data-user-name');
+
+                // Сохраняем ID пользователя для удаления
+                currentUserIdToDelete = userId;
+
+                // Обновляем текст в модальном окне
+                document.getElementById('userNameToDelete').textContent = userName;
+            }
+        });
+
+        // Обработчик для кнопки подтверждения удаления
+        document.getElementById('confirmDeleteUser').addEventListener('click', function () {
+            console.log("confirmDeleteUser : " + currentUserIdToDelete);
+            if (!currentUserIdToDelete) return;
+
+            deleteUser(currentUserIdToDelete);
+        });
+    });
+
+    // Функция удаления пользователя
+    function deleteUser(userId) {
+        const deleteUrl = '@Url.Action("DeleteUser", "User")' + '?userId=' + userId;
+        console.warn(deleteUrl);
+
+        fetch(deleteUrl, {
+            method: 'POST'
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+
+                // Закрываем модальное окно
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modalDeleteUser'));
+                modal.hide();
+
+                if (data.success) {
+                    // Обновляем таблицу пользователей
+                    loadUsersPartial();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+
+                // Сбрасываем ID
+                currentUserIdToDelete = null;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+
+                showAlert('Ошибка при удалении пользователя', 'danger');
+            });
+    }
+
+    // Функция загрузки partial view с пользователями
+    function loadUsersPartial() {
+        const container = document.getElementById('usersPartialContainer');
+        const USERS_PARTIAL_URL = '@Url.Action("GetUsersPartial", "User")';
+
+        fetch(USERS_PARTIAL_URL)
+            .then(response => {
+                console.log("Response status:", response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(html => {
+                //console.log("Received HTML, length:", html.length);
+                container.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Ошибка при обновлении списка пользователей', 'danger');
+            });
+    }
+
+    // Функция для показа уведомлений
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        // Добавляем уведомление перед контейнером
+        const container = document.getElementById('usersPartialContainer');
+        container.parentNode.insertBefore(alertDiv, container);
+
+        // Автоматически скрываем через 5 секунд
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                const bsAlert = new bootstrap.Alert(alertDiv);
+                bsAlert.close();
+            }
+        }, 10000);
+    }
+
+</script>
+

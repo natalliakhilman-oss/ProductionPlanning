@@ -1,0 +1,80 @@
+﻿@using ProductionPlanning.Extensions
+@using ProductionPlanning.ViewModel.Request
+@model OrderListViewModel
+
+<input type="hidden" id="ordersDateValue" value="@Model.DateOrder()" />
+
+@if (Model.Orders.Any())
+{
+    <p><strong>Количество : </strong>@Model.GetCount()</p>
+
+    <div class="list-group list-group-flush">
+        @foreach (var order in Model.Orders)
+        {
+            <div class="list-group-item border rounded-3 mb-3 shadow-sm">
+                <!-- Заголовок с номером заявки и датой -->
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <div class="fw-semibold fs-6">
+                            <i class="bi bi-box-seam me-1 text-primary"></i>
+                            @order.ProductRequest.Equipment.Name
+                        </div>
+                    </div>
+
+                    <span class="badge bg-light text-dark">
+                        @order.DateCreate.ToString("dd.MM.yyyy")
+                    </span>
+                </div>
+                <div class="text-muted small mb-2">
+                    <i class="bi bi-hash me-1"></i>
+                    Заявка № : <strong>@order.ProductRequest.GetNumString()</strong>
+                </div>
+                <div class="text-muted small mb-2">
+                    <i class="bi bi-hash me-1"></i>
+                    Количество: <strong>@order.Count</strong>
+                </div>
+                @* Описание заказа, если есть *@
+                @if (!string.IsNullOrWhiteSpace(order.Description))
+                {
+                    <div class="text-muted small mb-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        @order.Description
+                    </div>
+                }
+
+                @if (User.IsInRole(Role.Manufacture))
+                {
+                    <div class="d-flex gap-2">
+                        <a asp-action="EditRequestOrder" 
+                                asp-route-id="@order.Id" 
+                                asp-route-_date="@order.DateCreate.ToString("yyyy-MM-dd")"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil me-1"></i> Изменить
+                        </a>
+
+                        <button class="btn btn-sm btn-outline-danger delete-order-btn"
+                                data-order-id="@order.Id"
+                                data-order-date="@order.DateCreate"
+                                data-bs-toggle="modal"
+                                data-bs-target="#confirmDeleteModal">
+                            <i class="bi bi-trash me-1"></i> Удалить
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+        <p class="mb-0">Заказов пока нет</p>
+    </div>
+}
+
+
+
+
+
+

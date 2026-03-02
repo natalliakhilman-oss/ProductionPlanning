@@ -1,0 +1,65 @@
+﻿@using ProductionPlanning.ViewModel.Account
+@model LoginViewModel
+
+@{
+    ViewData["Title"] = "Вход в систему";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <!-- Увеличил ширину -->
+            <div class="card shadow-sm rounded-3">
+                <div class="card-body">
+                    <h2 class="text-center mb-4">Вход в систему</h2>
+
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Username" class="control-label">Логин</label>
+                            <input asp-for="Username" class="form-control rounded-2" />
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Password" class="control-label">Пароль</label>
+                            <div class="password-wrapper">
+                                <input asp-for="Password" class="form-control rounded-2" id="password-input" />
+                                <a href="#" class="password-control" onclick="return show_hide_password(this);"></a>
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group form-check mb-3">
+                            <input asp-for="RememberMe" class="form-check-input" />
+                            <label asp-for="RememberMe" class="form-check-label">Запомнить меня</label>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary w-100 rounded-2">Войти</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<script>
+    function show_hide_password(target) {
+        var input = document.getElementById('password-input');
+        if (input.getAttribute('type') == 'password') {
+            target.classList.add('view');
+            input.setAttribute('type', 'text');
+        } else {
+            target.classList.remove('view');
+            input.setAttribute('type', 'password');
+        }
+        return false;
+    }
+</script>

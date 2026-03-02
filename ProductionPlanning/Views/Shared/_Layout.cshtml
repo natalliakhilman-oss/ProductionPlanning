@@ -1,0 +1,156 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    @* Animation for hide menu (without freez) *@
+    <script>
+        (function () {
+            try {
+                const isCollapsed = localStorage.getItem("sidebar-collapsed") === "true";
+                const isMobileHidden = localStorage.getItem("sidebar-mobile-hidden") === "true";
+
+                if (isCollapsed) {
+                    document.documentElement.classList.add("sidebar-collapsed");
+                }
+                if (isMobileHidden && window.innerWidth <= 768) {
+                    document.documentElement.classList.add("sidebar-mobile-hidden");
+                }
+            } catch (e) { }
+        })();
+    </script>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ProductionPlanning</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/ProductsTable.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/logout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/PasswordInput.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/Menu.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/ContextMenu.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/ProductionPlanning.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap-select/css/bootstrap-select.min.css" />
+    <!-- Font Awesome для иконок -->
+    <link rel="stylesheet" href="~/fonts/font-awesome/css/all.min.css" asp-append-version="true">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<header>
+    <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-0">
+        <div class="container-fluid">
+            <button id="toggleSidebar" class="btn btn-light me-2 d-sm-none">☰</button>
+            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">PPlanning</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                    aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <ul class="navbar-nav flex-grow-1">
+                        @* @if (User.IsInRole(Role.Administrator))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Log" asp-action="Index">Лог</a>
+                            </li>
+                        }
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Request" asp-action="RequestMonth">Table</a>
+                        </li> *@
+                    </ul>
+
+                    @await Html.PartialAsync("_LogoutPartialView")
+                }
+            </div>
+        </div>
+    </nav>
+</header>
+
+<div class="app-layout flex-grow-1 d-flex">
+
+    @* ===== Sidebar ===== *@
+    @if (User.Identity.IsAuthenticated)
+    {
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <span class="logo">Меню</span>
+                <button id="toggleSidebarDesktop" class="toggle-btn d-none d-sm-inline">☰</button>
+            </div>
+
+            <nav class="menu">               
+                 @await Html.PartialAsync("_MenuItemsPartialView")
+            </nav>
+        </aside>
+    }
+
+    @* ===== Main content ===== *@
+    <main id="mainContent" class="main-content flex-grow-1">
+        <div class="container py-3">
+            @RenderBody()
+        </div>
+    </main>
+
+</div>
+
+<footer class="mt-auto bg-white border-top">
+    <div class="container py-3">
+        <p>Version : @AppInfo.VersionApp() (@AppInfo.DateRelease())</p>
+        <p>&copy; 2025 - @DateTime.Now.Year - ООО "РовалэнтИнвестГрупп"</p>
+    </div>
+</footer>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/lib/bootstrap-select/js/bootstrap-select.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+<script src="~/js/validationform.js" asp-append-version="true"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script src="~/js/Menu.js" asp-append-version="true"></script>
+<!-- SignalR JavaScript клиент -->
+@* <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script> *@
+<!-- SignalR JavaScript клиент -->
+<script src="~/lib/microsoft/signalr/dist/browser/signalr.js" asp-append-version="true"></script>
+
+    <script>
+        // Сначала получаем актуальное значение с сервера
+        $.get('/Request/GetNewRequestCount', function (count) {
+            $('#requests-badge').text(count);
+            // Сохраняем в localStorage для офлайн режима
+            localStorage.setItem('requestCount', count);
+        });
+        // Сначала получаем актуальное значение с сервера
+        $.get('/Request/GetNewOrderCount', function (count) {
+            $('#requests-badge-orders').text(count);
+            // Сохраняем в localStorage для офлайн режима
+            localStorage.setItem('ordersCount', count);
+        });
+        // Подключение к SignalR hub
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/requestHub")
+            .withAutomaticReconnect()
+            .build();
+
+        // Получение обновлений счетчика
+        connection.on("ReceiveRequestCount", (count) => {
+            document.getElementById('requests-badge').textContent = count;
+        });
+        // Получение обновлений счетчика
+        connection.on("ReceiveOrderCount", (count) => {
+            document.getElementById('requests-badge-orders').textContent = count;
+        });
+
+        // Запуск соединения
+        connection.start().catch(err => console.error(err.toString()));
+    </script>
+
+@await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

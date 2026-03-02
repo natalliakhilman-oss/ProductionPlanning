@@ -1,0 +1,53 @@
+﻿@using ProductionPlanning.ViewModel.Equipments
+@model AddEquipmentViewModel
+
+@{
+    ViewData["Title"] = "Новое оборудование";
+}
+
+<div class="col-md-8">
+    <h1 class="h3 mb-0">Новое оборудование</h1>
+    <p class="text-muted mb-0">Добавление нового оборудования в систему</p>
+</div>
+<hr />
+<form asp-action="AddEquipment" method="post" class="needs-validation" novalidate>
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="alert alert-light" role="alert">
+        <h5 class="alert-heading">
+            <span class="fas fa-info-circle"></span>
+            Информация об оборудовании
+        </h5>
+
+        <div class="row g-3">
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="form-group mb-3">
+                    <label asp-for="Equipment.Name" class="form-label"></label>
+                    <input asp-for="Equipment.Name" class="form-control" required />
+                    <span asp-validation-for="Equipment.Name" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <label asp-for="Equipment.Type" class="form-label"></label>
+                <select class="form-select" asp-for="Equipment.Type" asp-items="ViewBag.eqType" required></select>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-12 col-md-6 col-lg-4">
+                <label asp-for="Equipment.Article" class="form-label"></label>
+                <input asp-for="Equipment.Article" class="form-control" />
+            </div>
+        </div>
+    </div>
+
+    
+    <br />
+    <div class="col-12">
+        <input type="submit" class="btn btn-success" value="Добавить" />
+        <button type="button" class="btn btn-secondary" onclick="history.back();">Отмена</button>
+    </div>   
+         
+</form>
+
+
+@* <script src="~/js/validationform.js" asp-append-version="true"></script> *@

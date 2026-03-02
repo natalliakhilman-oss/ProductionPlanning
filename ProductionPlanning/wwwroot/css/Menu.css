@@ -1,0 +1,240 @@
+﻿/* ================= Sidebar (ChatGPT-style light theme) ================= */
+
+.app-layout {
+    min-height: calc(100vh - 56px - 60px); /* header + footer */
+}
+
+.sidebar {
+    background-color: #ffffff;
+    color: #111827;
+    width: 260px;
+    min-width: 260px;
+    transition: width 0.25s ease, transform 0.25s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #e5e7eb;
+}
+
+    .sidebar.collapsed {
+        width: 72px;
+        min-width: 72px;
+    }
+
+    .sidebar.mobile-hidden {
+        transform: translateX(-100%);
+    }
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.logo {
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 0.3px;
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    color: #6b7280;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+    .toggle-btn:hover {
+        color: #111827;
+    }
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 8px;
+    gap: 4px;
+    flex-grow: 1;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    color: #374151;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+    .menu-item:hover {
+        background-color: #f3f4f6;
+        color: #111827;
+    }
+
+    .menu-item.active {
+        background-color: #e5e7eb;
+        color: #111827;
+    }
+
+    .menu-item.logout {
+        color: #b91c1c;
+    }
+
+        .menu-item.logout:hover {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+.menu-spacer {
+    flex-grow: 1;
+}
+
+/* Hide labels when collapsed */
+.sidebar.collapsed .label {
+    display: none;
+}
+
+.sidebar.collapsed .logo {
+    display: none;
+}
+
+/* Center icons when collapsed */
+.sidebar.collapsed .menu-item {
+    justify-content: center;
+}
+
+/* Main content */
+.main-content {
+    background-color: #f2f4f7;
+}
+
+/* ===== Mobile ===== */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        z-index: 1050;
+        height: 100vh;
+        left: 0;
+        top: 0;
+    }
+
+    .sidebar.collapsed {
+        width: 260px;
+        min-width: 260px;
+    }
+}
+
+
+/* Apply early state from <html> */
+html.sidebar-collapsed .sidebar {
+    width: 72px;
+    min-width: 72px;
+}
+
+    html.sidebar-collapsed .sidebar .label,
+    html.sidebar-collapsed .sidebar .logo {
+        display: none;
+    }
+
+    html.sidebar-collapsed .sidebar .menu-item {
+        justify-content: center;
+    }
+
+html.sidebar-mobile-hidden .sidebar {
+    transform: translateX(-100%);
+}
+
+/*Count for new Requests*/
+.menu-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    color: #374151;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+    /* 🔹 Круглый бейдж в правом верхнем углу иконки */
+    .menu-item .badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        font-size: 12px;
+        font-weight: 600;
+        color: white;
+        background-color: #ef4444; /* красный акцент */
+        border-radius: 9999px;
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        transition: transform 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
+        z-index: 10;
+    }
+
+        /* 🔹 Анимация при обновлении */
+        .menu-item .badge.update-flash {
+            animation: flash 0.4s ease;
+        }
+
+@keyframes flash {
+    0% {
+        transform: scale(1.3);
+        background-color: #f87171;
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.0);
+        background-color: #ef4444;
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.0);
+        background-color: #ef4444;
+        opacity: 1;
+    }
+}
+
+/* 🔹 Свернутое меню */
+.sidebar.collapsed .menu-item .label {
+    display: none;
+}
+
+.sidebar.collapsed .menu-item .badge {
+    top: 4px;
+    right: 4px; /* по-прежнему рядом с иконкой */
+}
+
+/* Кнопка toggle на мобильных */
+#toggleSidebar {
+    position: fixed; /* фиксируем на экране */
+    top: 12px; /* чуть ниже верхнего края */
+    left: 12px; /* слева */
+    z-index: 1100; /* выше чем sidebar */
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+/* Немного стилизуем для мобильного */
+@media (min-width: 769px) {
+    #toggleSidebar {
+        display: none; /* на больших экранах скрываем мобильную кнопку */
+    }
+}
+
+
+

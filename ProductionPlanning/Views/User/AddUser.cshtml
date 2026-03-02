@@ -1,0 +1,123 @@
+﻿@using ProductionPlanning.ViewModel.User
+@model AddUserViewModel
+
+@{
+    ViewData["Title"] = "Новый пользователь";
+}
+
+<div class="col-md-8">
+    <h1 class="h3 mb-0">Новый пользователь</h1>
+    <p class="text-muted mb-0">Добавление нового пользователя в систему</p>
+</div>
+<hr />
+<form asp-action="AddUser" method="post" class="needs-validation" novalidate>
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="alert alert-light" role="alert">
+        <h5 class="alert-heading">
+            <svg width="25" height="25" fill="#3498db" class="bi bi-person-circle" viewBox="0 0 17 17">
+                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
+            </svg>
+            Данные пользователя
+        </h5>
+
+        <div class="row g-3">
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="form-group mb-3">
+                    <label asp-for="UserName" class="form-label"></label>
+                    <input asp-for="UserName" class="form-control" required />
+                    <span asp-validation-for="UserName" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="form-group mb-3">
+                    <label asp-for="FullName" class="form-label"></label>
+                    <input asp-for="FullName" class="form-control" required />
+                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row g-3">
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="form-group mb-3">
+                    <label asp-for="Password"></label>
+                    <div class="password-wrapper">
+                        <input asp-for="Password" class="form-control" id="passwordId" required />
+                        <a href="#" class="password-control" data-target="passwordId"></a>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="form-group mb-3">
+                    <label asp-for="ConfirmPassword"></label>
+                    <div class="password-wrapper">
+                        <input asp-for="ConfirmPassword" class="form-control" id="confirmPasswordId" required />
+                        <a href="#" class="password-control" data-target="confirmPasswordId"></a>
+                    </div>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <hr />
+    <div class="alert alert-light" role="alert">
+        <h5 class="alert-heading">
+            <svg width="25" height="25" fill="#3498db" class="bi bi-person-gear" viewBox="0 0 17 17">
+                <path d="M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m.256 7a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10q.39 0 .74.025c.226-.341.496-.65.804-.918Q8.844 9.002 8 9c-5 0-6 3-6 4s1 1 1 1zm3.63-4.54c.18-.613 1.048-.613 1.229 0l.043.148a.64.64 0 0 0 .921.382l.136-.074c.561-.306 1.175.308.87.869l-.075.136a.64.64 0 0 0 .382.92l.149.045c.612.18.612 1.048 0 1.229l-.15.043a.64.64 0 0 0-.38.921l.074.136c.305.561-.309 1.175-.87.87l-.136-.075a.64.64 0 0 0-.92.382l-.045.149c-.18.612-1.048.612-1.229 0l-.043-.15a.64.64 0 0 0-.921-.38l-.136.074c-.561.305-1.175-.309-.87-.87l.075-.136a.64.64 0 0 0-.382-.92l-.148-.045c-.613-.18-.613-1.048 0-1.229l.148-.043a.64.64 0 0 0 .382-.921l-.074-.136c-.306-.561.308-1.175.869-.87l.136.075a.64.64 0 0 0 .92-.382zM14 12.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0" />
+            </svg>
+            Роли пользователя
+        </h5>
+        <div class="row justify-content-start">
+            <div class="col-md-6 col-lg-4">
+                <div class="form-group mb-3">
+                    @* <label>Роли:</label> *@
+                    @foreach (var role in Model.AvailableRoles)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="SelectedRoles" value="@role"
+                                   id="role-@role" @(Model.SelectedRoles.Contains(role) ? "checked" : "")>
+                            <label class="form-check-label" for="role-@role">
+                                @role
+                            </label>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <br />
+    <div class="col-12">
+        <input type="submit" class="btn btn-success" value="Создать пользователя" />
+        <button type="button" class="btn btn-secondary" onclick="history.back();">Отмена</button>
+    </div>
+</form>
+
+
+<script src="~/js/validationform.js" asp-append-version="true"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.password-control').forEach(function (button) {
+            button.addEventListener('click', function (e) {
+                e.preventDefault();
+                var inputId = this.getAttribute('data-target');
+                var input = document.getElementById(inputId);
+
+                if (input.getAttribute('type') == 'password') {
+                    this.classList.add('view');
+                    input.setAttribute('type', 'text');
+                } else {
+                    this.classList.remove('view');
+                    input.setAttribute('type', 'password');
+                }
+            });
+        });
+    });
+</script>

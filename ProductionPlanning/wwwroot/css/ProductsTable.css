@@ -1,0 +1,171 @@
+/*styles*/
+.schedule-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 11px;
+    position: relative;
+}
+.schedule-table thead {
+    position: sticky;
+    top: 0; /* Закрепляем вверху */
+    z-index: 100;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.schedule-table th,
+.schedule-table td {
+        border: 1px solid #666;
+        padding: 2px;
+        text-align: center;
+        white-space: nowrap;
+}
+
+.th-blue {
+    background-color: #b5e2ff;
+}
+
+.today-col {
+    border-left: 3px solid #00aaff;
+    border-right: 3px solid #00aaff;
+    background: #e6f7ff;
+}
+
+.priority-high {
+    background-color: #FF6767;
+}
+
+.priority-medium {
+    background-color: #A4DBAD;
+}
+
+.priority-low {
+    background-color: #A7D4F3;
+}
+
+.order {
+    font-weight: bold;
+}
+
+.total {
+    text-align: center;
+    padding: 5px;
+    background: #dff0d8;
+    font-weight: bold;
+}
+
+.product-cell {
+    font-weight: bold;
+    background: #eef5ff;
+    vertical-align: middle;
+}
+.info-cell {
+    background: #eef5ff;
+    vertical-align: middle;
+}
+
+.today-col {
+    background-color: #e6f4ff !important;
+    border-left: 3px solid #1e90ff;
+    border-right: 3px solid #1e90ff;
+}
+
+/* Статус: Нет статуса */
+.status-no {
+    background-color: #808080;
+    color: white;
+}
+
+/* Статус: Создана */
+.status-created {
+    background-color: #2196F3;
+    color: white;
+}
+
+/* Статус: Заявка принята производством */
+.status-accepted {
+    background-color: #9C27B0;
+    color: white;
+}
+
+/* Статус: В работе */
+.status-atwork {
+    background-color: #FF9800;
+    color: black;
+}
+
+/* Статус: Выполнена */
+.status-completed {
+    background-color: #4CAF50;
+    color: white;
+}
+
+/* Статус: Отменена */
+.status-canceled {
+    background-color: #F44336;
+    color: white;
+}
+
+/* Для поле месяц (переключение между месяцами)*/
+.month-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.month-title {
+    font-size: 16px;
+    font-weight: 600;
+    min-width: 160px;
+    text-align: center;
+}
+
+.nav-arrow {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.2s;
+    background-color: #f8f9fa;
+}
+
+.nav-arrow:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.nav-arrow svg {
+    fill: #495057;
+}
+
+.nav-arrow:active {
+    background-color: #dee2e6;
+    transform: translateY(1px);
+}
+
+/* Для disabled состояния (если нужно ограничить навигацию) */
+.nav-arrow.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.nav-arrow.disabled:hover {
+    background-color: #f8f9fa;
+    border-color: #ddd;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.clickable:hover {
+    background-color: #f0f0f0;
+    text-decoration: underline;
+}

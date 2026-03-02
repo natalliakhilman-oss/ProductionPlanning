@@ -1,0 +1,43 @@
+﻿@model string
+@{
+    ViewData["Title"] = "Ошибка";
+    Layout = "_Layout";
+}
+
+<div class="container mt-5">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <div class="error-content">
+                <h1 class="display-4 fw-bold text-danger mb-3">❌ Ошибка!</h1>
+                <h2 class="mb-4">Произошла ошибка</h2>
+                <p class="text-muted mb-4">
+                    @Model
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="javascript:history.back()" class="btn btn-lg btn-outline-dark">
+                        <i class="fas fa-arrow-left me-2"></i>Вернуться
+                    </a>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-lg btn-danger">
+                        <i class="fas fa-home me-2"></i>На главную
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 text-center">
+            <div class="error-illustration">
+                <i class="fas fa-shield-alt text-muted" style="font-size: 15rem; opacity: 0.1;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .error-content {
+        padding: 2rem 0;
+    }
+
+    .btn {
+        border-radius: 10px;
+        min-width: 160px;
+    }
+</style>

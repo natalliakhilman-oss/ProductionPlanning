@@ -1,0 +1,57 @@
+﻿
+@if (User.IsInRole(Role.Administrator) || User.IsInRole(Role.Manufacture) || User.IsInRole(Role.Header))
+{
+    <a asp-controller="Request" asp-action="RequestMonth" class="menu-item">
+        <span class="fas fa-list"></span>
+        <span class="label">Заявки</span>
+        <span class="badge" id="requests-badge"></span>
+    </a>
+}
+
+@if (User.IsInRole(Role.Seller))
+{
+    <a asp-controller="Request" asp-action="RequestMonth" class="menu-item">
+        <span class="fas fa-list"></span>
+        <span class="label">Заявки</span>
+        @* <span class="badge" id="requests-badge"></span> *@
+    </a>
+}
+
+@if (User.IsInRole(Role.Administrator))
+{
+    <a asp-controller="Equipment" asp-action="Equipments" class="menu-item">
+        <span class="fas fa-microscope"></span>
+        <span class="label">Оборудование</span>
+    </a>
+    <a asp-controller="Log" asp-action="Index" class="menu-item">
+        <span class="fas fa-history"></span>
+        <span class="label">Лог</span>
+    </a>
+}
+
+@if (User.IsInRole(Role.Seller))
+{
+    <a asp-controller="Request" asp-action="AddProductionRequest" class="menu-item">
+        <span class="fas fa-plus-circle"></span>
+        <span class="label">Создать заявку</span>
+    </a>
+}
+
+@if (User.IsInRole(Role.Accountant))
+{
+    <a asp-controller="Request" asp-action="AccounterOrders" class="menu-item">
+        <span class="fas fa-list"></span>
+        <span class="label">Учет продукции</span>
+        <span class="badge" id="requests-badge-orders"></span>
+    </a>
+}
+
+@* <a asp-controller="Home" asp-action="Privacy" class="menu-item">
+    <span class="icon">🔒</span><span class="label">Privacy</span>
+</a>
+
+<div class="menu-spacer"></div>
+
+<a asp-controller="Account" asp-action="Logout" class="menu-item logout">
+    <span class="icon">🚪</span><span class="label">Выход</span>
+</a> *@

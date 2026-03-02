@@ -1,0 +1,239 @@
+﻿@using ProductionPlanning.Extensions
+@using ProductionPlanning.ViewModel.Request;
+@model AddOrderViewModel;
+
+@{
+    ViewData["Title"] = "Создание заказа";
+}
+@{
+    var today = DateTime.Now.ToString("yyyy-MM-dd");
+}
+
+<div class="col-md-8">
+    <h1 class="h3 mb-0">
+        <svg width="25" height="25" fill="#3498db" class="bi bi-file-earmark-plus" viewBox="0 0 16 16">
+            <path d="M8 6.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5" />
+            <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5z" />
+        </svg>
+        Создание заказа по заявке <span style="color: #00BFFF;">@Model.App.GetNumString()</span>
+    </h1>
+    <p class="text-muted mb-0">Создание заказа</p>
+</div>
+<hr />
+
+<form asp-action="AddRequestOrder" method="post" class="needs-validation" novalidate>
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="App.Id" />
+
+    <div class="alert alert-light" role="alert">
+        <h5 class="alert-heading">
+            <svg width="25" height="25" fill="#3498db" class="bi bi-info-circle" viewBox="0 0 17 17">
+                <path fill-rule="evenodd" d="M8 7a.5.5 0 0 1 .5.5V9H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V10H6a.5.5 0 0 1 0-1h1.5V7.5A.5.5 0 0 1 8 7" />
+                <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z" />
+                <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z" />
+            </svg>
+            Информация о заказе
+        </h5>
+        <div class="row g-2">
+                <div class="col-md-6 col-lg-4">
+                    <label asp-for="Order.Count" class="form-label"></label>
+                    <input class="form-control" type="number" asp-for="Order.Count" min="1" max="@Model.MaxCount" required />
+                    <span asp-validation-for="Order.Count" class="text-danger small invalid-feedback"> 
+                        Введите значение от 1 до @Model.MaxCount
+                    </span>
+                </div>
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <label asp-for="Order.DateCreate" class="form-label"></label>
+                    <input asp-for="Order.DateCreate" type="date"
+                           class="form-control"
+                           max="@today"
+                           required />
+                    <span asp-validation-for="Order.DateCreate" class="text-danger small invalid-feedback">
+                        Дата не может быть позднее @today
+                    </span>
+                </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <label asp-for="Order.Description" class="form-label"></label>
+            <input class="form-control" asp-for="Order.Description" />
+            <span asp-validation-for="Order.Description" class="text-danger small invalid-feedback"></span>
+        </div>
+        <hr />
+        <div>
+            @{
+                await Html.RenderPartialAsync("_RequestInfoPartialView", new RequestInfoViewModel(Model.App, Model.ComplitedCount));
+            }
+        </div>
+        @* <hr>
+        <p class="mb-0">Whenever you need to, be sure to use margin utilities to keep things nice and tidy.</p> *@
+    </div>
+
+    <div class="col-12">
+        <input type="submit" class="btn btn-success" value="Сохранить" />
+        <button type="button" class="btn btn-secondary" onclick="history.back();">Отмена</button>
+    </div>
+</form>
+
+
+
+
+
+@* <script src="~/js/validationform.js" asp-append-version="true"></script> *@
+
+@section Scripts {
+    <script>
+        $(function () {
+            const $select = $('.selectpicker');
+
+            $select.selectpicker();
+
+            $select.on('changed.bs.select', function () {
+                const $this = $(this);
+                const val = $this.val();
+
+                // Снимаем или добавляем классы Bootstrap
+                if (val && val.length > 0) {
+                    $this.removeClass('is-invalid').addClass('is-valid');
+                } else {
+                    $this.removeClass('is-valid').addClass('is-invalid');
+                }
+
+                // Обновляем состояние валидности для unobtrusive validation
+                $this.valid(); // <- ключевой момент
+            });
+        });
+    </script>
+
+    @* Note Script *@
+    <script>
+        $(function () {
+
+            function syncNoteUI() {
+                const isChecked = $('#useNoteCheckbox').is(':checked');
+
+                $('#noteBox').toggleClass('d-none', !isChecked);
+                $('#createNoteBtn').toggleClass('d-none', !isChecked);
+            }
+
+            // первичная инициализация при загрузке
+            syncNoteUI();
+
+            // Показ / скрытие блока по чекбоксу
+            $('#useNoteCheckbox').on('change', function () {
+                $('#noteBox').toggleClass('d-none', !this.checked);
+                // Показ / скрытие кнопки
+                $('#createNoteBtn').toggleClass('d-none', !this.checked);
+            });
+        });
+
+        // Save Note
+        $(function () {
+            const $form = $('#noteForm');
+            const $select = $('#NoteId');
+
+            // Инициализация selectpicker один раз
+            $select.selectpicker();
+
+            $form.on('submit', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                $form.addClass('was-validated');
+                if (!$form[0].checkValidity()) return;
+
+                const model = {
+                    Name: $('#noteName').val().trim(),
+                    Customer: $('#noteCustomer').val().trim(),
+                    Description: $('#noteDescription').val().trim()
+                };
+
+                $.ajax({
+                    url: '@Url.Action("CreateNote", "Notes")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(model),
+                    success: function (result) {
+                        if (!result.success) {
+                            alert("Ошибка сервера");
+                            return;
+                        }
+
+                        $('#noteModal').modal('hide');
+
+                        // Обновляем selectpicker
+                        updateSelectPicker($select, result.notes, result.newNoteId);
+
+                        // Сбрасываем форму
+                        $form[0].reset();
+                        $form.removeClass('was-validated');
+                    },
+                    error: function () {
+                        alert('Ошибка при сохранении метки');
+                    }
+                });
+            });
+
+            // Универсальная функция обновления selectpicker
+            function updateSelectPicker($select, options, selectedId) {
+                if (!$select || !options) return;
+
+                // 1️ уничтожаем selectpicker
+                $select.selectpicker('destroy');
+
+                // 2️ очищаем select
+                $select.empty();
+
+                // 3️ добавляем новые опции
+                options.forEach(function (opt) {
+                    $select.append($('<option>', {
+                        value: opt.id,
+                        text: opt.text
+                    }));
+                });
+
+                // Инициализация selectpicker заново
+                $select.selectpicker({
+                    liveSearch: true,
+                    width: '100%'
+                });
+
+                // Выбираем новую заметку по id
+                if (selectedId) {
+                    $select.selectpicker('val', selectedId);
+                    $select.selectpicker('render'); // обновляем визуально
+                }
+
+                // вызвать обработчик смены (AJAX на информацию)
+                $('#NoteId').trigger('changed.bs.select');
+            }
+        });
+
+        // Update Selected Note info
+        // Делегированное событие changed.bs.select
+        $(document).on('changed.bs.select', '#NoteId', function () {
+            const id = $(this).val();
+            if (!id) {
+                $('#noteInfo').addClass('d-none');
+                return;
+            }
+
+            $.ajax({
+                url: '/Notes/GetNoteInfo',
+                type: 'GET',
+                data: { id: id },
+                success: function (data) {
+                    $('#noteInfo').removeClass('d-none');
+                    $('#customerInfo').text(data.customer ?? '—');
+                    $('#descriptionInfo').text(data.description ?? '—');
+                }
+            });
+        });
+
+
+
+    </script>
+}
+
+
+
+

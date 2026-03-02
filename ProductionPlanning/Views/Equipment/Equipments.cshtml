@@ -1,0 +1,159 @@
+﻿@using ProductionPlanning.ViewModel.Equipments
+@model EquipmentsViewModel
+
+@{
+    ViewData["Title"] = "Оборудование";
+}
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0">Оборудование</h1>
+            <p class="text-muted mb-0">Администрирование оборудованием</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a class="btn btn-success" href="@Url.Action("AddEquipment", "Equipment")">
+                <i class="fas fa-plus-circle"></i> Добавить оборудование
+            </a>
+        </div>
+    </div>
+</div>
+<hr />
+<div id="eqipmentsPartialContainer">
+    @{
+        await Html.RenderPartialAsync("_EquipmentsPartialView", Model);
+    }
+</div>
+
+<!-- Модальное окно -->
+<div class="modal fade" id="modalDeleteEq" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLabel">Удаление</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы действительно хотите удалить <strong id="userNameToDelete"></strong>?</p>
+                <p class="text-danger">Это действие нельзя отменить!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Удалить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let currentIdToDelete = null;
+
+        // Обработчик для кнопок удаления в таблице
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('.delete-user-btn')) {
+                const button = e.target.closest('.delete-user-btn');
+                const userId = button.getAttribute('data-user-id');
+                const userName = button.getAttribute('data-user-name');
+
+                // Сохраняем ID пользователя для удаления
+                currentIdToDelete = userId;
+
+                // Обновляем текст в модальном окне
+                document.getElementById('userNameToDelete').textContent = userName;
+            }
+        });
+
+        // Обработчик для кнопки подтверждения удаления
+        document.getElementById('confirmDelete').addEventListener('click', function () {
+            console.log("confirmDeleteUser : " + currentIdToDelete);
+            if (!currentIdToDelete) return;
+
+            deleteEquipment(currentIdToDelete);
+        });
+    });
+
+    // Функция удаления пользователя
+    function deleteEquipment(Id) {
+        const deleteUrl = '@Url.Action("DeleteEquipment", "Equipment")' + '?id=' + Id;
+        console.warn(deleteUrl);
+
+        fetch(deleteUrl, {
+            method: 'POST'
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+
+                // Закрываем модальное окно
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modalDeleteEq'));
+                modal.hide();
+
+                if (data.success) {
+                    // Обновляем таблицу пользователей
+                    loadPartial();
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+
+                // Сбрасываем ID
+                currentIdToDelete = null;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+
+                showAlert('Ошибка при удалении пользователя', 'danger');
+            });
+    }
+
+    // Функция загрузки partial view с пользователями
+    function loadPartial() {
+        const container = document.getElementById('eqipmentsPartialContainer');
+        const USERS_PARTIAL_URL = '@Url.Action("GetEquipmentsPartial", "Equipment")';
+
+        fetch(USERS_PARTIAL_URL)
+            .then(response => {
+                console.log("Response status:", response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(html => {
+                //console.log("Received HTML, length:", html.length);
+                container.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Ошибка при обновлении списка оборудования', 'danger');
+            });
+    }
+
+    // Функция для показа уведомлений
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        // Добавляем уведомление перед контейнером
+        const container = document.getElementById('eqipmentsPartialContainer');
+        container.parentNode.insertBefore(alertDiv, container);
+
+        // Автоматически скрываем через 5 секунд
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                const bsAlert = new bootstrap.Alert(alertDiv);
+                bsAlert.close();
+            }
+        }, 10000);
+    }
+
+</script>
+

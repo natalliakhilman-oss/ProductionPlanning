@@ -1,0 +1,117 @@
+﻿@using ProductionPlanning.Extensions
+@using ProductionPlanning.ViewModel.Request;
+@using static ProductionPlanning.Models.ProductRequest
+@model RequestInfoViewModel;
+
+<div class="card mb-3 shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+            <svg width="20" height="20" fill="#3498db" class="bi bi-info-circle" viewBox="0 0 17 17">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
+            </svg>
+            <strong>Заявка - </strong> <span style="color: #3498db;">@Model.Request.GetNumString()</span>
+        </span>
+        <span class="badge status-badge" data-status="@Model.Request.Status">
+            @Model.Request.Status.ToStringX()
+        </span>
+    </div>
+
+    <div class="card-body">
+        
+        <div class="mb-2">
+            <strong>Выполнено:</strong>
+            <span class="ms-1">
+                @Model.CompletedCount из @Model.Request.Count
+            </span>
+        </div>
+
+        <div class="progress" style="height: 20px;">
+            @{
+                var percent = Model.Request.Count > 0
+                ? (int)((double)Model.CompletedCount / Model.Request.Count * 100)
+                : 0;
+            }
+            <div class="progress-bar
+                @(percent == 100 ? "bg-success" : "bg-info")"
+                 role="progressbar"
+                 style="width: @percent%;"
+                 aria-valuenow="@percent"
+                 aria-valuemin="0"
+                 aria-valuemax="100">
+                @percent%
+            </div>
+        </div>
+        <hr />
+
+        <dl class="row mb-0">
+            <dt class="col-sm-4">Дата создания заявки</dt>
+            <dd class="col-sm-8">@Model.Request.DateCreate.ToString("dd.MM.yyyy")</dd>
+
+            <dt class="col-sm-4">Изделие</dt>
+            <dd class="col-sm-8">@Model.Request.Equipment?.Name</dd>
+
+            @* <dt class="col-sm-4">Количество</dt>
+            <dd class="col-sm-8">@Model.Request.Count</dd> *@
+
+            <dt class="col-sm-4">Тип заявки</dt>
+            <dd class="col-sm-8">@Model.Request.AppType.ToStringX()</dd>
+
+            <dt class="col-sm-4">Срочность</dt>
+            <dd class="col-sm-8">@Model.Request.AppUrgency.ToStringX()</dd>
+
+            <dt class="col-sm-4">Дата поставки</dt>
+            <dd class="col-sm-8">@Model.Request.DateMaxFinish.ToString("dd.MM.yyyy")</dd>
+
+            @if (Model.Request.DatePlaningStart.HasValue)
+            {
+                <dt class="col-sm-4">Планируемая дата начала производства</dt>
+                <dd class="col-sm-8">@Model.Request.DatePlaningStart.Value.ToString("dd.MM.yyyy")</dd>
+            }
+
+            @* @if (Model.Request.DatePlaningFinish.HasValue)
+            {
+                <dt class="col-sm-4">Планируемая дата отгрузки</dt>
+                <dd class="col-sm-8">@Model.Request.DatePlaningFinish.Value.ToString("dd.MM.yyyy")</dd>
+            } *@
+
+            @if (Model.Request.DateFinish.HasValue)
+            {
+                <dt class="col-sm-4">Фактическая дата отгрузки</dt>
+                <dd class="col-sm-8">@Model.Request.DateFinish.Value.ToString("dd.MM.yyyy")</dd>
+            }
+
+            @if (Model.Request.Note != null)
+            {
+                <dt class="col-sm-4">Метка</dt>
+                <dd class="col-sm-8">
+                    <div><strong>@Model.Request.Note.Name</strong></div>
+                    <div class="text-muted">Заказчик: @Model.Request.Note.Customer</div>
+                    @if (!string.IsNullOrWhiteSpace(Model.Request.Note.Description))
+                    {
+                        <div class="small mt-1">@Model.Request.Note.Description</div>
+                    }
+                </dd>
+            }
+        </dl>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const statusClassMap = {
+            "No": "bg-secondary",
+            "Created": "bg-primary",
+            "Accepted": "bg-info text-dark",
+            "AtWork": "bg-warning text-dark",
+            "Completed": "bg-success",
+            "Canceled": "bg-danger"
+        };
+
+        document.querySelectorAll(".status-badge").forEach(badge => {
+            const status = badge.dataset.status;
+            const cssClass = statusClassMap[status] || "bg-secondary";
+            badge.classList.add(...cssClass.split(" "));
+        });
+    });
+</script>
