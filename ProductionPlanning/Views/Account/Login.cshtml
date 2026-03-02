@@ -1,4 +1,4 @@
-﻿@using ProductionPlanning.ViewModel.Account
+@using ProductionPlanning.ViewModel.Account
 @model LoginViewModel
 
 @{
@@ -14,7 +14,7 @@
                     <h2 class="text-center mb-4">Вход в систему</h2>
 
                     <form method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div asp-validation-summary="All" class="text-danger"></div>
 
                         <div class="form-group mb-3">
                             <label asp-for="Username" class="control-label">Логин</label>
@@ -28,7 +28,7 @@
                                 <input asp-for="Password" class="form-control rounded-2" id="password-input" />
                                 <a href="#" class="password-control" onclick="return show_hide_password(this);"></a>
                             </div>
-                            <span asp-validation-for="Password" class="text-danger"></span>
+                            <span asp-validation-for="Password" class="invalid-feedback d-block"></span>
                         </div>
 
                         <div class="form-group form-check mb-3">

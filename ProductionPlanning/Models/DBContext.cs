@@ -99,8 +99,11 @@ namespace ProductionPlanning.Models
         [Display(Name = "Ссылка на прибор")]
         public Equipment? Equipment { get; set; }
 
+        /// <summary>Верхняя граница количества в одной заявке (для валидации и подсказок).</summary>
+        public const int CountMax = 999999;
+
         [Display(Name = "Количество")]
-        [Range(1, int.MaxValue, ErrorMessage = "Количество должно быть больше 0")]
+        [Range(1, CountMax, ErrorMessage = "Количество должно быть от 1 до {2}")]
         public int Count { get; set; } = 0;
 
         [Display(Name ="Атрибут срочности")]

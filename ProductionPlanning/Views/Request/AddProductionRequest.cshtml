@@ -1,3 +1,4 @@
+@using ProductionPlanning.Models
 @using ProductionPlanning.ViewModel.Request;
 @model AddRequestViewModel;
 
@@ -22,7 +23,15 @@
 </div>
 <hr />
 
-<form asp-action="AddProductionRequest" method="post" class="needs-validation" novalidate id="addRequestForm">
+@* Черновик: баннер восстановления *@
+<div id="draftRestoreBanner" class="alert alert-info alert-dismissible fade show d-none" role="alert">
+    <strong>Есть сохранённый черновик.</strong> Восстановить данные формы?
+    <button type="button" class="btn btn-sm btn-outline-primary ms-2" id="draftRestoreBtn">Восстановить</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="draftDiscardBtn">Начать заново</button>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+</div>
+
+<form asp-action="AddProductionRequest" method="post" class="needs-validation" novalidate id="addRequestForm" data-no-notes="@(noNotes ? "true" : "false")" data-no-equipment="@(noEquipment ? "true" : "false")">
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -39,7 +48,17 @@
         </div>
     }
 
-    <div class="alert alert-light" role="group" aria-labelledby="section-info-heading">
+    @* Пошаговый ввод (wizard) *@
+    <div class="mb-3" id="wizardProgress">
+        <div class="d-flex justify-content-between small text-muted mb-1">
+            <span id="wizardStepCaption">Шаг 1 из 3: Тип и период</span>
+        </div>
+        <div class="progress" style="height: 6px;">
+            <div class="progress-bar" id="wizardProgressBar" role="progressbar" style="width: 33%;" aria-valuenow="1" aria-valuemin="0" aria-valuemax="3"></div>
+        </div>
+    </div>
+
+    <div class="alert alert-light wizard-step" id="wizardStep1" role="group" aria-labelledby="section-info-heading" data-wizard-step="1">
         <h2 id="section-info-heading" class="h5 alert-heading mb-3">
             <svg width="25" height="25" fill="#3498db" class="bi bi-info-circle" viewBox="0 0 17 17">
                 <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
@@ -63,7 +82,7 @@
         <p class="mb-0">Whenever you need to, be sure to use margin utilities to keep things nice and tidy.</p> *@
     </div>
 
-    <div class="alert alert-light" role="group" aria-labelledby="section-product-heading">
+    <div class="alert alert-light wizard-step d-none" id="wizardStep2" role="group" aria-labelledby="section-product-heading" data-wizard-step="2">
         <h2 id="section-product-heading" class="h5 alert-heading mb-3">
             <svg width="25" height="25" fill="#3498db" class="bi bi-info-circle" viewBox="0 0 17 17">
                 <path fill-rule="evenodd" d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5zm-6 8A1.5 1.5 0 0 1 1.5 10h1A1.5 1.5 0 0 1 4 11.5v1A1.5 1.5 0 0 1 2.5 14h-1A1.5 1.5 0 0 1 0 12.5zm6 0A1.5 1.5 0 0 1 7.5 10h1a1.5 1.5 0 0 1 1.5 1.5v1A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5zm6 0a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5z" />
@@ -80,12 +99,14 @@
                         title="Выберите элемент..."
                         asp-items="ViewBag.equipmentList"
                         required
-                        aria-describedby="validation-equipment"></select>
+                        aria-describedby="hint-equipment validation-equipment"></select>
+                <small id="hint-equipment" class="form-text text-muted">Выберите изделие из справочника</small>
                 <span asp-validation-for="App.EquipmentId" class="invalid-feedback d-block" id="validation-equipment"></span>
             </div>
             <div class="col-md-6 col-lg-4">
                 <label asp-for="App.Count" class="form-label" id="label-count"></label>
-                <input class="form-control" type="number" asp-for="App.Count" min="1" required aria-describedby="validation-count" />
+                <input class="form-control" type="number" asp-for="App.Count" min="1" max="@ProductRequest.CountMax" required aria-describedby="hint-count validation-count" />
+                <small id="hint-count" class="form-text text-muted">От 1 до @ProductRequest.CountMax</small>
                 <span asp-validation-for="App.Count" class="invalid-feedback d-block" id="validation-count"></span>
             </div>
             <div class="col-md-6 col-lg-4">
@@ -94,15 +115,26 @@
                 <span asp-validation-for="App.DateMaxFinish" class="invalid-feedback d-block" id="validation-datemax"></span>
             </div>
         </div>
-        <hr />
+    </div>
+
+    @* Note *@
+    @if (noNotes)
+    {
+        <div class="alert alert-warning" role="alert" id="noteListWarning">
+            Список меток пуст. Создайте метку или снимите флажок «Использовать метку».
+        </div>
+    }
+    <div class="alert alert-light wizard-step d-none" id="wizardStep3" role="group" aria-labelledby="section-urgency-heading" data-wizard-step="3">
+        <h2 id="section-urgency-heading" class="h5 alert-heading mb-3">
+            <svg width="25" height="25" fill="#3498db" class="bi bi-hourglass-split" viewBox="0 0 16 16">
+                <path d="M2.5 15a.5.5 0 1 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3V2h-1a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13v1h1a.5.5 0 0 1 0 1zm2-13v1c0 .537.12 1.045.337 1.5h6.326c.216-.455.337-.963.337-1.5V2zm3 6.35c0 .701-.478 1.236-1.011 1.492A3.5 3.5 0 0 0 4.5 13s.866-1.299 3-1.48zm1 0v3.17c2.134.181 3 1.48 3 1.48a3.5 3.5 0 0 0-1.989-3.158C8.978 9.586 8.5 9.052 8.5 8.351z" />
+            </svg>
+            Срочность
+        </h2>
         <div class="col-md-12 mb-3">
             <label class="form-label d-block mb-2" id="label-urgency">
-                <svg width="16" height="16" fill="#3498db" class="bi bi-hourglass-split" viewBox="0 0 16 16">
-                    <path d="M2.5 15a.5.5 0 1 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3V2h-1a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13v1h1a.5.5 0 0 1 0 1zm2-13v1c0 .537.12 1.045.337 1.5h6.326c.216-.455.337-.963.337-1.5V2zm3 6.35c0 .701-.478 1.236-1.011 1.492A3.5 3.5 0 0 0 4.5 13s.866-1.299 3-1.48zm1 0v3.17c2.134.181 3 1.48 3 1.48a3.5 3.5 0 0 0-1.989-3.158C8.978 9.586 8.5 9.052 8.5 8.351z" />
-                </svg>
                 @Html.DisplayNameFor(m => m.App.AppUrgency)
             </label>
-
             <div class="btn-group gap-2" role="group" aria-label="Urgency">
                 @foreach (var item in (SelectList)ViewBag.urgency)
                 {
@@ -113,7 +145,6 @@
                         "High" => "btn-outline-danger",
                         _ => "btn-outline-secondary"
                     };
-
                     string iconClass = item.Value.ToString() switch
                     {
                         "Low" => "bi-circle",
@@ -121,7 +152,6 @@
                         "High" => "bi-exclamation-triangle-fill",
                         _ => ""
                     };
-
                     var fullText = item.Text;
                     var parenStart = fullText.IndexOf('(');
                     var shortName = parenStart > 0 ? fullText.Substring(0, parenStart).Trim() : fullText;
@@ -129,40 +159,17 @@
                     if (parenStart > 0)
                     {
                         var parenEnd = fullText.IndexOf(')');
-                        if (parenEnd > parenStart)
-                        {
-                            tooltip = fullText.Substring(parenStart + 1, parenEnd - parenStart - 1);
-                        }
+                        if (parenEnd > parenStart) { tooltip = fullText.Substring(parenStart + 1, parenEnd - parenStart - 1); }
                     }
-
-                    <input type="radio"
-                           class="btn-check"
-                           asp-for="App.AppUrgency"
-                           value="@item.Value"
-                           id="urgency_@item.Value"
-                           autocomplete="off" />
-
-                    <label class="btn @outlineClass"
-                           for="urgency_@item.Value"
-                           title="@tooltip">
-                        <i class="bi @iconClass me-1"></i>
-                        @shortName
+                    <input type="radio" class="btn-check" asp-for="App.AppUrgency" value="@item.Value" id="urgency_@item.Value" autocomplete="off" />
+                    <label class="btn @outlineClass" for="urgency_@item.Value" title="@tooltip">
+                        <i class="bi @iconClass me-1"></i>@shortName
                     </label>
                 }
             </div>
-
             <span asp-validation-for="App.AppUrgency" class="invalid-feedback d-block mt-1" id="validation-urgency"></span>
         </div>
-    </div>
-
-    @* Note *@
-    @if (noNotes && Model.IsUseNote)
-    {
-        <div class="alert alert-warning" role="alert">
-            Список меток пуст. Создайте метку или снимите флажок «Использовать метку».
-        </div>
-    }
-    <div class="alert alert-light" role="group" aria-labelledby="section-note-heading">
+        <hr />
         <h2 id="section-note-heading" class="h5 alert-heading mb-3">
             <svg width="25" height="25" fill="#3498db" class="bi bi-check2-circle" viewBox="0 0 16 16">
                 <path d="M2.5 8a5.5 5.5 0 0 1 8.25-4.764.5.5 0 0 0 .5-.866A6.5 6.5 0 1 0 14.5 8a.5.5 0 0 0-1 0 5.5 5.5 0 1 1-11 0" />
@@ -223,9 +230,11 @@
         </div>
     </div>
 
-    <div class="col-12">
-        <input type="submit" class="btn btn-success" value="Создать заявку" id="submitRequestBtn" />
-        <a asp-action="RequestMonth" asp-controller="Request" class="btn btn-secondary">Отмена</a>
+    <div class="col-12 d-flex gap-2 flex-wrap" id="wizardNav">
+        <button type="button" class="btn btn-secondary d-none" id="wizardBackBtn" aria-label="Назад">← Назад</button>
+        <button type="button" class="btn btn-primary" id="wizardNextBtn">Далее →</button>
+        <input type="submit" class="btn btn-success d-none" value="Создать заявку" id="submitRequestBtn" @(noEquipment ? "disabled" : "") />
+        <a asp-action="RequestMonth" asp-controller="Request" class="btn btn-outline-secondary ms-auto">Отмена</a>
     </div>
 </form>
 
@@ -252,8 +261,8 @@
                     <div class="row g-2">
                         <div class="col-md-6">
                             <label class="form-label" for="noteName">Название</label>
-                            <input id="noteName" class="form-control" required minlength="3" />
-                            <div class="invalid-feedback">
+                            <input id="noteName" class="form-control" required minlength="3" aria-describedby="validation-note-name" />
+                            <div class="invalid-feedback" id="validation-note-name">
                                 Введите название (минимум 3 символа)
                             </div>
                         </div>
@@ -306,9 +315,16 @@
                 $this.valid();
             });
 
-            // Блокировка отправки: «Использовать метку» включён, но метка не выбрана
+            // Блокировка отправки: «Использовать метку» включён, но список меток пуст или метка не выбрана
             $('#addRequestForm').on('submit', function () {
                 if ($('#useNoteCheckbox').is(':checked')) {
+                    var noNotes = $('#addRequestForm').data('no-notes') === true || $('#addRequestForm').data('no-notes') === 'true';
+                    if (noNotes) {
+                        $('#noteBox').removeClass('d-none');
+                        var $warn = $('#noteListWarning');
+                        if ($warn.length) $('html, body').animate({ scrollTop: $warn.offset().top - 20 }, 300);
+                        return false;
+                    }
                     var noteVal = $('#NoteId').val();
                     if (!noteVal || (Array.isArray(noteVal) && noteVal.length === 0)) {
                         var $noteBox = $('#noteBox');
@@ -317,8 +333,168 @@
                         return false;
                     }
                 }
+                window.__clearRequestDraft && window.__clearRequestDraft();
             });
         });
+    </script>
+
+    @* Wizard: пошаговый ввод *@
+    <script>
+        (function () {
+            var currentStep = 1;
+            var totalSteps = 3;
+            var stepTitles = ['Тип и период', 'Продукция и объём', 'Срочность и метка'];
+
+            function showStep(step) {
+                currentStep = step;
+                window.__wizardCurrentStep = step;
+                $('.wizard-step').addClass('d-none');
+                $('#wizardStep' + step).removeClass('d-none');
+
+                $('#wizardProgressBar').css('width', (step / totalSteps * 100) + '%').attr('aria-valuenow', step);
+                $('#wizardStepCaption').text('Шаг ' + step + ' из ' + totalSteps + ': ' + stepTitles[step - 1]);
+
+                $('#wizardBackBtn').toggleClass('d-none', step <= 1);
+                $('#wizardNextBtn').toggleClass('d-none', step >= totalSteps);
+                $('#submitRequestBtn').toggleClass('d-none', step < totalSteps);
+
+                $('#addRequestForm').trigger('change');
+                if (step < totalSteps) {
+                    $('#wizardNextBtn').focus();
+                } else {
+                    $('#submitRequestBtn').focus();
+                }
+            }
+
+            function validateStep(step) {
+                var $step = $('#wizardStep' + step);
+                var $inputs = $step.find('input, select, textarea').filter('[required], [data-val-required]');
+                var valid = true;
+                $inputs.each(function () {
+                    var el = this;
+                    if (el.checkValidity && !el.checkValidity()) {
+                        valid = false;
+                        $(el).addClass('is-invalid');
+                    }
+                });
+                if (!valid) {
+                    $step.find('.is-invalid').first().focus();
+                }
+                return valid;
+            }
+
+            $('#wizardNextBtn').on('click', function () {
+                if (!validateStep(currentStep)) return;
+                if (currentStep < totalSteps) {
+                    showStep(currentStep + 1);
+                    $('html, body').animate({ scrollTop: $('#wizardProgress').offset().top - 20 }, 300);
+                }
+            });
+
+            $('#wizardBackBtn').on('click', function () {
+                if (currentStep > 1) {
+                    showStep(currentStep - 1);
+                    $('html, body').animate({ scrollTop: $('#wizardProgress').offset().top - 20 }, 300);
+                }
+            });
+
+            showStep(1);
+            window.__wizardShowStep = showStep;
+        })();
+    </script>
+
+    @* Черновик: localStorage *@
+    <script>
+        (function () {
+            var DRAFT_KEY = 'AddProductionRequest_draft';
+            var saveTimeout;
+
+            function getDraft() {
+                try {
+                    var raw = localStorage.getItem(DRAFT_KEY);
+                    return raw ? JSON.parse(raw) : null;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            function setDraft() {
+                var form = document.getElementById('addRequestForm');
+                if (!form) return;
+                var step = (typeof window.__wizardCurrentStep !== 'undefined') ? window.__wizardCurrentStep : 1;
+                var data = { step: step };
+                var fields = {};
+                [].slice.call(form.elements).forEach(function (el) {
+                    if (!el.name || el.name === '' || el.type === 'submit' || el.type === 'button') return;
+                    if (el.type === 'checkbox' || el.type === 'radio') {
+                        if (el.type === 'radio' && !el.checked) return;
+                        fields[el.name] = el.checked ? (el.value || 'on') : '';
+                    } else {
+                        fields[el.name] = el.value || '';
+                    }
+                });
+                data.fields = fields;
+                try {
+                    localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+                } catch (e) {}
+            }
+
+            function clearDraft() {
+                try {
+                    localStorage.removeItem(DRAFT_KEY);
+                } catch (e) {}
+            }
+
+            function restoreDraft() {
+                var draft = getDraft();
+                if (!draft || !draft.fields) return;
+                var form = document.getElementById('addRequestForm');
+                if (!form) return;
+                Object.keys(draft.fields).forEach(function (name) {
+                    var val = draft.fields[name];
+                    var els = form.querySelectorAll('[name="' + name.replace(/"/g, '\\"') + '"]');
+                    if (!els.length) return;
+                    if (els[0].type === 'checkbox') {
+                        els[0].checked = (val === (els[0].value || 'on') || val === true || val === 'true');
+                    } else if (els[0].type === 'radio') {
+                        els.forEach(function (r) { r.checked = (r.value === val); });
+                    } else {
+                        els[0].value = val;
+                    }
+                });
+                $('.selectpicker').selectpicker('refresh');
+                $('#useNoteCheckbox').trigger('change');
+                if (typeof window.__wizardShowStep === 'function' && draft.step) {
+                    var step = Math.min(Math.max(1, draft.step), 3);
+                    window.__wizardShowStep(step);
+                }
+                $('#draftRestoreBanner').addClass('d-none');
+                clearDraft();
+            }
+
+            $('#draftRestoreBtn').on('click', function () {
+                restoreDraft();
+            });
+            $('#draftDiscardBtn').on('click', function () {
+                clearDraft();
+                $('#draftRestoreBanner').addClass('d-none');
+            });
+
+            if (getDraft()) {
+                $('#draftRestoreBanner').removeClass('d-none');
+            }
+
+            $('#addRequestForm').on('input change', function () {
+                clearTimeout(saveTimeout);
+                var step = 1;
+                if ($('#wizardStep2').is(':visible')) step = 2;
+                else if ($('#wizardStep3').is(':visible')) step = 3;
+                window.__wizardCurrentStep = step;
+                saveTimeout = setTimeout(setDraft, 500);
+            });
+
+            window.__clearRequestDraft = clearDraft;
+        })();
     </script>
 
     @* Note Script *@

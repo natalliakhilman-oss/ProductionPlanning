@@ -1,4 +1,4 @@
-﻿@using ProductionPlanning.ViewModel.Equipments
+@using ProductionPlanning.ViewModel.Equipments
 @model AddEquipmentViewModel
 
 @{
@@ -11,7 +11,7 @@
 </div>
 <hr />
 <form asp-action="AddEquipment" method="post" class="needs-validation" novalidate>
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div asp-validation-summary="All" class="text-danger"></div>
     <div class="alert alert-light" role="alert">
         <h5 class="alert-heading">
             <span class="fas fa-info-circle"></span>
@@ -23,7 +23,7 @@
                 <div class="form-group mb-3">
                     <label asp-for="Equipment.Name" class="form-label"></label>
                     <input asp-for="Equipment.Name" class="form-control" required />
-                    <span asp-validation-for="Equipment.Name" class="text-danger small"></span>
+                    <span asp-validation-for="Equipment.Name" class="invalid-feedback d-block"></span>
                 </div>
             </div>
 

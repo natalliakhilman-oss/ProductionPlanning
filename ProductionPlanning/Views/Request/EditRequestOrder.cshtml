@@ -1,4 +1,4 @@
-﻿@using ProductionPlanning.Extensions
+@using ProductionPlanning.Extensions
 @using ProductionPlanning.ViewModel.Request;
 @model EditOrderViewModel;
 
@@ -22,7 +22,7 @@
 <hr />
 
 <form asp-action="EditRequestOrder" method="post" class="needs-validation" novalidate>
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div asp-validation-summary="All" class="text-danger"></div>
     <input type="hidden" asp-for="App.Id" />
     <input type="hidden" asp-for="Order.Id" />
     <input type="hidden" asp-for="CurrentCount" />
@@ -39,10 +39,8 @@
         <div class="row g-2">
                 <div class="col-md-6 col-lg-4">
                     <label asp-for="Order.Count" class="form-label"></label>
-                    <input class="form-control" type="number" asp-for="Order.Count" min="1" max="@Model.MaxCount" required />
-                    <span asp-validation-for="Order.Count" class="text-danger small invalid-feedback"> 
-                        Введите значение от 1 до @Model.MaxCount
-                    </span>
+                    <input class="form-control" type="number" asp-for="Order.Count" min="1" max="@Model.MaxCount" required autofocus />
+                    <span asp-validation-for="Order.Count" class="invalid-feedback d-block">Введите значение от 1 до @Model.MaxCount</span>
                 </div>
                 <div class="col-md-6 col-lg-4 mb-3">
                     <label asp-for="Order.DateCreate" class="form-label"></label>
@@ -59,7 +57,7 @@
         <div class="col-md-6 col-lg-4">
             <label asp-for="Order.Description" class="form-label"></label>
             <input class="form-control" asp-for="Order.Description" />
-            <span asp-validation-for="Order.Description" class="text-danger small invalid-feedback"></span>
+            <span asp-validation-for="Order.Description" class="invalid-feedback d-block"></span>
         </div>
         <hr />
         <div>
@@ -73,7 +71,7 @@
 
     <div class="col-12">
         <input type="submit" class="btn btn-success" value="Сохранить" />
-        <button type="button" class="btn btn-secondary" onclick="history.back();">Отмена</button>
+        <a asp-action="RequestMonth" asp-controller="Request" asp-route-_date="@Model.App.MonthDatePlanning.ToString("yyyy-MM-dd")" class="btn btn-secondary">Отмена</a>
     </div>
 </form>
 
@@ -129,18 +127,29 @@
             });
         });
 
-        // Save Note
+        // Save Note (#NoteId уже инициализирован через .selectpicker в $(function () { ... }) выше)
         $(function () {
             const $form = $('#noteForm');
             const $select = $('#NoteId');
+            const $modalError = $('#noteModalError');
 
-            // Инициализация selectpicker один раз
-            $select.selectpicker();
+            function showModalError(msg) {
+                if ($modalError.length) {
+                    $modalError.text(msg).removeClass('d-none');
+                } else {
+                    alert(msg);
+                }
+            }
+            function hideModalError() {
+                if ($modalError.length) $modalError.addClass('d-none').text('');
+            }
+
+            $('#noteModal').on('show.bs.modal', hideModalError);
 
             $form.on('submit', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-
+                hideModalError();
                 $form.addClass('was-validated');
                 if (!$form[0].checkValidity()) return;
 
@@ -157,21 +166,26 @@
                     data: JSON.stringify(model),
                     success: function (result) {
                         if (!result.success) {
-                            alert("Ошибка сервера");
+                            showModalError(result.message || 'Ошибка сервера');
                             return;
                         }
 
                         $('#noteModal').modal('hide');
-
-                        // Обновляем selectpicker
+                        hideModalError();
                         updateSelectPicker($select, result.notes, result.newNoteId);
-
-                        // Сбрасываем форму
                         $form[0].reset();
                         $form.removeClass('was-validated');
+
+                        var $noteBox = $('#noteBox');
+                        if ($noteBox.length) {
+                            $noteBox.removeClass('d-none');
+                            $('html, body').animate({ scrollTop: $noteBox.offset().top - 20 }, 300);
+                            var $noteBtn = $('#NoteId').next('.bootstrap-select').find('button');
+                            if ($noteBtn.length) $noteBtn[0].focus();
+                        }
                     },
                     error: function () {
-                        alert('Ошибка при сохранении метки');
+                        showModalError('Ошибка при сохранении метки');
                     }
                 });
             });
