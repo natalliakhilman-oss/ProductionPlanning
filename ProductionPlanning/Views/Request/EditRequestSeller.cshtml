@@ -1,4 +1,4 @@
-﻿@using ProductionPlanning.Extensions
+@using ProductionPlanning.Extensions
 @using ProductionPlanning.ViewModel.Request;
 @model EditRequestViewModel;
 
@@ -22,6 +22,13 @@
 <hr />
 
 <form asp-action="EditRequest" method="post" class="needs-validation" novalidate>
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+        </div>
+    }
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <input type="hidden" asp-for="App.Id" />
     @* <input type="hidden" asp-for="App.DatePlaningStart" />

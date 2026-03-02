@@ -42,7 +42,7 @@ namespace ProductionPlanning.Models
         {
             [Description("Низкий (не срочная внеплановая заявка)")]
             Low = 0,
-            [Description("Средний (плаовая заявка)")]
+            [Description("Средний (плановая заявка)")]
             Medium = 1,
             [Description("Высокий (срочная внеплановая заявка)")]
             High = 2,

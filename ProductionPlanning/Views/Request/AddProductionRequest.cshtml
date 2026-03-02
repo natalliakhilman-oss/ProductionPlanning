@@ -3,9 +3,11 @@
 
 @{
     ViewData["Title"] = "Создание заявки";
-}
-@{
     var today = DateTime.Now.ToString("yyyy-MM-dd");
+    var equipList = ViewBag.equipmentList as Microsoft.AspNetCore.Mvc.Rendering.SelectList;
+    var notesList = ViewBag.noteList as Microsoft.AspNetCore.Mvc.Rendering.SelectList;
+    var noEquipment = equipList == null || !equipList.Any();
+    var noNotes = notesList == null || !notesList.Any();
 }
 
 <div class="col-md-8">
@@ -20,66 +22,81 @@
 </div>
 <hr />
 
-<form asp-action="AddProductionRequest" method="post" class="needs-validation" novalidate>
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<form asp-action="AddProductionRequest" method="post" class="needs-validation" novalidate id="addRequestForm">
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+        </div>
+    }
+    <div asp-validation-summary="All" class="text-danger"></div>
 
-    <div class="alert alert-light" role="alert">
-        <h5 class="alert-heading">
+    @if (noEquipment)
+    {
+        <div class="alert alert-warning" role="alert">
+            Нет доступных изделий для выбора. Добавьте оборудование в справочник.
+        </div>
+    }
+
+    <div class="alert alert-light" role="group" aria-labelledby="section-info-heading">
+        <h2 id="section-info-heading" class="h5 alert-heading mb-3">
             <svg width="25" height="25" fill="#3498db" class="bi bi-info-circle" viewBox="0 0 17 17">
                 <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
                 <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
             </svg>
             Информация о заявке
-        </h5>
+        </h2>
         <div class="row g-2">
             <div class="col-md-6 col-lg-4">
-                <label asp-for="App.AppType" class="form-label"></label>
-                <select class="form-select" asp-for="App.AppType" asp-items="ViewBag.rType" required></select>
+                <label asp-for="App.AppType" class="form-label" id="label-apptype"></label>
+                <select class="form-select" asp-for="App.AppType" asp-items="ViewBag.rType" required aria-describedby="validation-apptype" autofocus></select>
+                <span asp-validation-for="App.AppType" class="invalid-feedback d-block" id="validation-apptype"></span>
             </div>
             <div class="col-md-6 col-lg-4">
-                <label asp-for="App.MonthDatePlanning" class="form-label"></label>
-                <select class="form-select" asp-for="App.MonthDatePlanning" asp-items="ViewBag.Months" required></select>
+                <label asp-for="App.MonthDatePlanning" class="form-label" id="label-month"></label>
+                <select class="form-select" asp-for="App.MonthDatePlanning" asp-items="ViewBag.Months" required aria-describedby="validation-month"></select>
+                <span asp-validation-for="App.MonthDatePlanning" class="invalid-feedback d-block" id="validation-month"></span>
             </div>
         </div>
         @* <hr>
         <p class="mb-0">Whenever you need to, be sure to use margin utilities to keep things nice and tidy.</p> *@
     </div>
 
-    <div class="alert alert-light" role="alert">
-        <h5 class="alert-heading">
+    <div class="alert alert-light" role="group" aria-labelledby="section-product-heading">
+        <h2 id="section-product-heading" class="h5 alert-heading mb-3">
             <svg width="25" height="25" fill="#3498db" class="bi bi-info-circle" viewBox="0 0 17 17">
                 <path fill-rule="evenodd" d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5zm-6 8A1.5 1.5 0 0 1 1.5 10h1A1.5 1.5 0 0 1 4 11.5v1A1.5 1.5 0 0 1 2.5 14h-1A1.5 1.5 0 0 1 0 12.5zm6 0A1.5 1.5 0 0 1 7.5 10h1a1.5 1.5 0 0 1 1.5 1.5v1A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5zm6 0a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5z" />
             </svg>
             Продукция
-        </h5>
-        <div class="col-md-6 col-lg-4 mb-3">
-            <label asp-for="App.EquipmentId" class="form-label d-block"></label>
-            <select class="form-select selectpicker"
-                    asp-for="App.EquipmentId"
-                    id="searchable-select"
-                    data-live-search="true"
-                    title="Выберите элемент..."
-                    asp-items="ViewBag.equipmentList"
-                    required></select>
-            <span asp-validation-for="App.EquipmentId" class="invalid-feedback d-block"></span>
-        </div>
+        </h2>
         <div class="row g-3">
             <div class="col-md-6 col-lg-4">
-                <label asp-for="App.Count" class="form-label"></label>
-                <input class="form-control" type="number" asp-for="App.Count" min="1" required />
-                <span asp-validation-for="App.Count" class="text-danger small invalid-feedback"> Введите значение больше 0</span>
+                <label asp-for="App.EquipmentId" class="form-label" id="label-equipment"></label>
+                <select class="form-select selectpicker"
+                        asp-for="App.EquipmentId"
+                        id="searchable-select"
+                        data-live-search="true"
+                        title="Выберите элемент..."
+                        asp-items="ViewBag.equipmentList"
+                        required
+                        aria-describedby="validation-equipment"></select>
+                <span asp-validation-for="App.EquipmentId" class="invalid-feedback d-block" id="validation-equipment"></span>
             </div>
-            <div class="col-md-6 col-lg-4 mb-3">
-                <label asp-for="App.DateMaxFinish" class="form-label"></label>
-                <input asp-for="App.DateMaxFinish" type="date" class="form-control" min="@today" required />
-                <span asp-validation-for="App.DateMaxFinish" class="text-danger small invalid-feedback">
-                    Введите значение, большее или равное @today
-                </span>
+            <div class="col-md-6 col-lg-4">
+                <label asp-for="App.Count" class="form-label" id="label-count"></label>
+                <input class="form-control" type="number" asp-for="App.Count" min="1" required aria-describedby="validation-count" />
+                <span asp-validation-for="App.Count" class="invalid-feedback d-block" id="validation-count"></span>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <label asp-for="App.DateMaxFinish" class="form-label" id="label-datemax"></label>
+                <input asp-for="App.DateMaxFinish" type="date" class="form-control" min="@today" required aria-describedby="validation-datemax" />
+                <span asp-validation-for="App.DateMaxFinish" class="invalid-feedback d-block" id="validation-datemax"></span>
             </div>
         </div>
         <hr />
         <div class="col-md-12 mb-3">
-            <label class="form-label d-block mb-2">
+            <label class="form-label d-block mb-2" id="label-urgency">
                 <svg width="16" height="16" fill="#3498db" class="bi bi-hourglass-split" viewBox="0 0 16 16">
                     <path d="M2.5 15a.5.5 0 1 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3V2h-1a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13v1h1a.5.5 0 0 1 0 1zm2-13v1c0 .537.12 1.045.337 1.5h6.326c.216-.455.337-.963.337-1.5V2zm3 6.35c0 .701-.478 1.236-1.011 1.492A3.5 3.5 0 0 0 4.5 13s.866-1.299 3-1.48zm1 0v3.17c2.134.181 3 1.48 3 1.48a3.5 3.5 0 0 0-1.989-3.158C8.978 9.586 8.5 9.052 8.5 8.351z" />
                 </svg>
@@ -134,20 +151,25 @@
                 }
             </div>
 
-            <span asp-validation-for="App.AppUrgency" class="text-danger small d-block mt-1"></span>
+            <span asp-validation-for="App.AppUrgency" class="invalid-feedback d-block mt-1" id="validation-urgency"></span>
         </div>
     </div>
 
     @* Note *@
-    <div class="alert alert-light" role="alert">
-        <h5 class="alert-heading">
+    @if (noNotes && Model.IsUseNote)
+    {
+        <div class="alert alert-warning" role="alert">
+            Список меток пуст. Создайте метку или снимите флажок «Использовать метку».
+        </div>
+    }
+    <div class="alert alert-light" role="group" aria-labelledby="section-note-heading">
+        <h2 id="section-note-heading" class="h5 alert-heading mb-3">
             <svg width="25" height="25" fill="#3498db" class="bi bi-check2-circle" viewBox="0 0 16 16">
                 <path d="M2.5 8a5.5 5.5 0 0 1 8.25-4.764.5.5 0 0 0 .5-.866A6.5 6.5 0 1 0 14.5 8a.5.5 0 0 0-1 0 5.5 5.5 0 1 1-11 0" />
                 <path d="M15.354 3.354a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0z" />
             </svg>
             Метка
-        </h5>
-
+        </h2>
         <div class="card mb-3">
 
             <!-- HEADER -->
@@ -177,7 +199,7 @@
 
             <!-- BODY -->
             <div class="card-body d-none" id="noteBox">
-                <label asp-for="App.NoteId" class="form-label"></label>
+                <label asp-for="App.NoteId" class="form-label" id="label-noteid"></label>
 
                 <select class="selectpicker"
                         asp-for="App.NoteId"
@@ -185,7 +207,9 @@
                         id="NoteId"
                         data-live-search="true"
                         title="Выберите метку..."
-                        data-width="100%">
+                        data-width="100%"
+                        aria-describedby="validation-noteid"
+                        data-no-notes="@(noNotes ? "true" : "false")">
                 </select>
 
                 <div id="noteInfo" class="mt-2 d-none border-start border-4 border-primary ps-2">
@@ -193,15 +217,15 @@
                     <div><b>Описание:</b> <span id="descriptionInfo"></span></div>
                 </div>
 
-                <span asp-validation-for="App.NoteId" class="invalid-feedback d-block"></span>
+                <span asp-validation-for="App.NoteId" class="invalid-feedback d-block" id="validation-noteid"></span>
             </div>
 
         </div>
     </div>
 
     <div class="col-12">
-        <input type="submit" class="btn btn-success" value="Создать заявку" />
-        <button type="button" class="btn btn-secondary" onclick="history.back();">Отмена</button>
+        <input type="submit" class="btn btn-success" value="Создать заявку" id="submitRequestBtn" />
+        <a asp-action="RequestMonth" asp-controller="Request" class="btn btn-secondary">Отмена</a>
     </div>
 </form>
 
@@ -221,6 +245,8 @@
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
+
+                <div id="noteModalError" class="alert alert-danger d-none mx-3 mt-2 mb-0" role="alert"></div>
 
                 <div class="modal-body">
                     <div class="row g-2">
@@ -277,7 +303,20 @@
                 }
 
                 // Обновляем состояние валидности для unobtrusive validation
-                $this.valid(); // <- ключевой момент
+                $this.valid();
+            });
+
+            // Блокировка отправки: «Использовать метку» включён, но метка не выбрана
+            $('#addRequestForm').on('submit', function () {
+                if ($('#useNoteCheckbox').is(':checked')) {
+                    var noteVal = $('#NoteId').val();
+                    if (!noteVal || (Array.isArray(noteVal) && noteVal.length === 0)) {
+                        var $noteBox = $('#noteBox');
+                        $noteBox.removeClass('d-none');
+                        $('html, body').animate({ scrollTop: $noteBox.offset().top - 20 }, 300);
+                        return false;
+                    }
+                }
             });
         });
     </script>
@@ -304,18 +343,25 @@
             });
         });
 
-        // Save Note
+        // Save Note (#NoteId уже инициализирован через .selectpicker выше)
         $(function () {
             const $form = $('#noteForm');
             const $select = $('#NoteId');
+            const $modalError = $('#noteModalError');
 
-            // Инициализация selectpicker один раз
-            $select.selectpicker();
+            function showModalError(msg) {
+                $modalError.text(msg).removeClass('d-none');
+            }
+            function hideModalError() {
+                $modalError.addClass('d-none').text('');
+            }
+
+            $('#noteModal').on('show.bs.modal', hideModalError);
 
             $form.on('submit', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-
+                hideModalError();
                 $form.addClass('was-validated');
                 if (!$form[0].checkValidity()) return;
 
@@ -332,56 +378,37 @@
                     data: JSON.stringify(model),
                     success: function (result) {
                         if (!result.success) {
-                            alert("Ошибка сервера");
+                            showModalError(result.message || 'Ошибка сервера');
                             return;
                         }
-
                         $('#noteModal').modal('hide');
-
-                        // Обновляем selectpicker
+                        hideModalError();
                         updateSelectPicker($select, result.notes, result.newNoteId);
-
-                        // Сбрасываем форму
                         $form[0].reset();
                         $form.removeClass('was-validated');
+                        $('#noteBox').removeClass('d-none');
+                        $('html, body').animate({ scrollTop: $('#noteBox').offset().top - 20 }, 300);
+                        const $noteBtn = $('#NoteId').next('.bootstrap-select').find('button');
+                        if ($noteBtn.length) $noteBtn[0].focus();
                     },
                     error: function () {
-                        alert('Ошибка при сохранении метки');
+                        showModalError('Ошибка при сохранении метки');
                     }
                 });
             });
 
-            // Универсальная функция обновления selectpicker
             function updateSelectPicker($select, options, selectedId) {
                 if (!$select || !options) return;
-
-                // 1️ уничтожаем selectpicker
                 $select.selectpicker('destroy');
-
-                // 2️ очищаем select
                 $select.empty();
-
-                // 3️ добавляем новые опции
                 options.forEach(function (opt) {
-                    $select.append($('<option>', {
-                        value: opt.id,
-                        text: opt.text
-                    }));
+                    $select.append($('<option>', { value: opt.id, text: opt.text }));
                 });
-
-                // Инициализация selectpicker заново
-                $select.selectpicker({
-                    liveSearch: true,
-                    width: '100%'
-                });
-
-                // Выбираем новую заметку по id
+                $select.selectpicker({ liveSearch: true, width: '100%' });
                 if (selectedId) {
                     $select.selectpicker('val', selectedId);
-                    $select.selectpicker('render'); // обновляем визуально
+                    $select.selectpicker('render');
                 }
-
-                // вызвать обработчик смены (AJAX на информацию)
                 $('#NoteId').trigger('changed.bs.select');
             }
         });

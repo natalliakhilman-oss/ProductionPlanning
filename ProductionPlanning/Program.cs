@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using ProductionPlanning.Models;
 using ProductionPlanning.Models.Logging;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting.WindowsServices;
 using System.Reflection;
 using ProductionPlanning.Hubs;
@@ -55,20 +57,29 @@ else
     var config = new ConfigurationBuilder()
                     .SetBasePath(AppInfo.GetAppPath())
                     .AddJsonFile("hosting.json", optional: true)
+                    .AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["db_host"] = Environment.GetEnvironmentVariable("DB_HOST"),
+                        ["db_port"] = Environment.GetEnvironmentVariable("DB_PORT"),
+                        ["db_name"] = Environment.GetEnvironmentVariable("DB_NAME"),
+                        ["db_user"] = Environment.GetEnvironmentVariable("DB_USER"),
+                        ["db_timeout"] = Environment.GetEnvironmentVariable("DB_TIMEOUT"),
+                    })
                     .Build();
 
+    var db_host = config.GetValue<string>("db_host") ?? "localhost";
     var db_port = int.TryParse(config.GetValue<string>("db_port"), out var port)
         ? port
         : AppInfo.db_port_default;
-    var db_pass = config.GetValue<string>("db_pass");
-    db_pass = db_pass != null ? Crypt.Decrypt(db_pass, AppInfo.encryptionKey) : AppInfo.db_password_default;
+    var db_name = config.GetValue<string>("db_name") ?? AppInfo.db_name_default;
+    var db_user = config.GetValue<string>("db_user") ?? AppInfo.db_user_default;
+    var db_pass_raw = config.GetValue<string>("db_pass");
+    var db_pass = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? (db_pass_raw != null ? Crypt.Decrypt(db_pass_raw, AppInfo.encryptionKey) : AppInfo.db_password_default);
     var db_timeout = int.TryParse(config.GetValue<string>("db_timeout"), out var timeout)
         ? timeout
         : AppInfo.db_timeout_default;
-    var db_name = config.GetValue<string>("db_name") ?? AppInfo.db_name_default;
-    var db_user = config.GetValue<string>("db_user") ?? AppInfo.db_user_default;
 
-    var db_connection_mySql = $"Server=localhost;Port={db_port};Database={db_name};user={db_user};password={db_pass};command timeout={db_timeout}";
+    var db_connection_mySql = $"Server={db_host};Port={db_port};Database={db_name};User={db_user};Password={db_pass};Connection Timeout={db_timeout};Default Command Timeout={db_timeout}";
     builder.Services.AddDbContext<DBContext>(options => options.UseMySql(db_connection_mySql, ServerVersion.AutoDetect(db_connection_mySql)));
 }
 #endregion ConnectionDB

@@ -1,0 +1,9 @@
+{
+  "server_urls": "http://*:17700",
+  "db_host": "localhost",
+  "db_port": "3306",
+  "db_pass": "",
+  "db_name": "ProductPlanning",
+  "db_user": "root",
+  "db_timeout": "60"
+}

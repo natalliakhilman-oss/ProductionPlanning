@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.SignalR;
@@ -40,102 +40,63 @@ namespace ProductionPlanning.Controllers
         public async Task<IActionResult> AddProductionRequest(int _id)
         {
             var model = new AddRequestViewModel();
-            
-            if(_id != 0)
+
+            if (_id != 0)
             {
                 model.App.EquipmentId = _id;
             }
 
-            // ProdRequestType
+            await FillAddRequestViewBagAsync(model.App.MonthDatePlanning);
+            return View(model);
+        }
+
+        private async Task FillAddRequestViewBagAsync(DateTime monthDatePlanning)
+        {
             ViewBag.rType = new SelectList(
                 Enum.GetValues(typeof(ProductionRequestType))
-                            .Cast<ProductionRequestType>()
-                            .Where(t => t != ProductionRequestType.No)
-                            .Select(t => new
-                            {
-                                Value = t,
-                                Text = t.ToStringX()
-                            })
-                            .ToList(),
-                "Value",
-                "Text"
-            );
+                    .Cast<ProductionRequestType>()
+                    .Where(t => t != ProductionRequestType.No)
+                    .Select(t => new { Value = t, Text = t.ToStringX() })
+                    .ToList(),
+                "Value", "Text");
 
-            // MonthDatePlanning
             var months = new List<SelectListItem>();
-
             for (int i = 0; i < 12; i++)
             {
-                var date = model.App.MonthDatePlanning.AddMonths(i);
+                var date = monthDatePlanning.AddMonths(i);
                 months.Add(new SelectListItem
                 {
-                    Value = date.ToString("yyyy-MM"), // или date.ToString("MM.yyyy")
+                    Value = date.ToString("yyyy-MM"),
                     Text = date.ToString("MMMM yyyy", new CultureInfo("ru-RU"))
                 });
             }
             ViewBag.Months = months;
 
-            // Urgency
             ViewBag.urgency = new SelectList(
                 Enum.GetValues(typeof(ProductionRequestUrgency))
-                            .Cast<ProductionRequestUrgency>()
-                            .Select(t => new
-                            {
-                                Value = t,
-                                Text = t.ToStringX()
-                            })
-                            .ToList(),
-                "Value",
-                "Text"
-            );
+                    .Cast<ProductionRequestUrgency>()
+                    .Select(t => new { Value = t, Text = t.ToStringX() })
+                    .ToList(),
+                "Value", "Text");
 
-            // ViewBag fro DB
             using (var scope = _scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<DBContext>();
 
-                // Equipment List
                 var equpList = await dbContext.Equipments.AsNoTracking().Where(f => f.IsDeleted != true).ToListAsync();
-                if (equpList != null)
-                {
-                    ViewBag.equipmentList = new SelectList(
-                        equpList.Cast<Equipment>()
-                        .Select(e => new
-                        {
-                            Value = e.Id,
-                            Text = e.Name,
-                        })
-                        .ToList(),
-                        "Value",
-                        "Text"
-                    );
-                }
+                ViewBag.equipmentList = equpList != null
+                    ? new SelectList(equpList.Select(e => new { Value = e.Id, Text = e.Name }).ToList(), "Value", "Text")
+                    : new SelectList(Enumerable.Empty<SelectListItem>());
 
-                // noteList
                 var notes = await dbContext.Notes
-                        .AsNoTracking()
-                        .Where(f => f.IsDeleted != true)
-                        .OrderByDescending(n => n.DateCreate)
-                        .ToListAsync();
-
-                if (notes != null)
-                {
-                    ViewBag.noteList = new SelectList(
-                        notes.Cast<Note>()
-                        .Select(e => new
-                        {
-                            Value = e.Id,
-                            Text = $"{e.GetNumString()} - {e.Name}",
-                        })
-                        .ToList(),
-                        "Value",
-                        "Text"
-                    );
-                }
+                    .AsNoTracking()
+                    .Where(f => f.IsDeleted != true)
+                    .OrderByDescending(n => n.DateCreate)
+                    .ToListAsync();
+                ViewBag.noteList = notes != null
+                    ? new SelectList(notes.Select(e => new { Value = e.Id, Text = $"{e.GetNumString()} - {e.Name}" }).ToList(), "Value", "Text")
+                    : new SelectList(Enumerable.Empty<SelectListItem>());
             }
-
-
-            return View(model);
         }
 
         [HttpPost]
@@ -143,8 +104,10 @@ namespace ProductionPlanning.Controllers
         public async Task<IActionResult> AddProductionRequest(AddRequestViewModel model)
         {
             if (!ModelState.IsValid)
-                //return BadRequest("Ошибка данных");
-                return View("BadRequest", "Ошибка данных");
+            {
+                await FillAddRequestViewBagAsync(model.App.MonthDatePlanning);
+                return View(model);
+            }
             try
             {
                 DateTime? monthReturn = DateTime.Now;
@@ -154,11 +117,10 @@ namespace ProductionPlanning.Controllers
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<DBContext>();
 
-                    // Get Max Number for this Year
                     int? maxNumber = await dbContext.ProductRequests
                         .AsNoTracking()
-                        .Where(n => n.DateCreate.Year == currentDate.Year 
-                                    && n.DateCreate.Month == currentDate.Month 
+                        .Where(n => n.DateCreate.Year == currentDate.Year
+                                    && n.DateCreate.Month == currentDate.Month
                                     && n.DateCreate.Day == currentDate.Day
                                     && !n.IsDeleted)
                         .MaxAsync(n => (int?)n.DayNumber);
@@ -179,20 +141,19 @@ namespace ProductionPlanning.Controllers
                         .CountAsync(x => x.Status == ProductRequestStatus.Created
                             && !x.IsDeleted);
 
-                    // Отправляем обновление всем клиентам через SignalR
                     await _hubContext.Clients.All.SendAsync("ReceiveRequestCount", requestCount);
 
                     monthReturn = model.App.MonthDatePlanning;
                 }
 
                 return RedirectToAction("RequestMonth", new { _date = monthReturn });
-                //return RedirectToAction("Index", "Home");
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return View("BadRequest", $"Ошибка данных : {ex.Message}");
-                //return BadRequest(ex.Message);
+                TempData["ErrorMessage"] = $"Ошибка данных: {ex.Message}";
+                await FillAddRequestViewBagAsync(model.App.MonthDatePlanning);
+                return View(model);
             }
         }
 
@@ -358,11 +319,20 @@ namespace ProductionPlanning.Controllers
         [Authorize(Roles = Role.Administrator + "," + Role.Seller + "," + Role.Manufacture)]
         public async Task<IActionResult> EditRequest(EditRequestViewModel model)
         {
+            bool IsManufacture = User.IsInRole(Role.Manufacture);
+            bool IsSeller = User.IsInRole(Role.Seller);
+
+            if (!ModelState.IsValid)
+            {
+                await FillAddRequestViewBagAsync(model.App.MonthDatePlanning);
+                if (IsManufacture) return View("EditRequestManufacture", model);
+                if (IsSeller) return View("EditRequestSeller", model);
+                return View(model);
+            }
+
             try
             {
                 DateTime? monthReturn = DateTime.Now;
-                bool IsManufacture = User.IsInRole(Role.Manufacture);
-                bool IsSeller = User.IsInRole(Role.Seller);
 
                 using (var scope = _scopeFactory.CreateScope())
                 {
@@ -417,8 +387,11 @@ namespace ProductionPlanning.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return View("BadRequest", $"Ошибка данных : {ex.Message}");
-
+                TempData["ErrorMessage"] = $"Ошибка данных: {ex.Message}";
+                await FillAddRequestViewBagAsync(model.App.MonthDatePlanning);
+                if (IsManufacture) return View("EditRequestManufacture", model);
+                if (IsSeller) return View("EditRequestSeller", model);
+                return View(model);
             }
         }
         

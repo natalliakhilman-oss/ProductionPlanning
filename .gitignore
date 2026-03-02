@@ -54,3 +54,9 @@ Desktop.ini
 
 ## dotnet-install script
 dotnet-install.ps1
+
+## App secrets & local data
+hosting.json
+**/app.db
+**/Logs/
+*.log
