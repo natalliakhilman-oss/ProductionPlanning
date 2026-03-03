@@ -19,7 +19,7 @@
         </svg>
         Новая заявка
     </h1>
-    <p class="text-muted mb-0">Создание новой заявки (все поля на одной странице)</p>
+    <p class="text-muted mb-0">Создание новой заявки</p>
 </div>
 <hr />
 
@@ -68,8 +68,6 @@
                 <span asp-validation-for="App.MonthDatePlanning" class="invalid-feedback d-block" id="validation-month"></span>
             </div>
         </div>
-        @* <hr>
-        <p class="mb-0">Whenever you need to, be sure to use margin utilities to keep things nice and tidy.</p> *@
     </div>
 
     <div class="alert alert-light mb-3" role="group" aria-labelledby="section-product-heading">
@@ -107,7 +105,6 @@
         </div>
     </div>
 
-    @* Note *@
     @if (noNotes)
     {
         <div class="alert alert-warning" role="alert" id="noteListWarning">
@@ -168,11 +165,7 @@
             Метка
         </h2>
         <div class="card mb-3">
-
-            <!-- HEADER -->
             <div class="card-header d-flex justify-content-between align-items-center">
-
-                <!-- Левая часть -->
                 <div class="form-check m-0">
                     <input class="form-check-input"
                            type="checkbox"
@@ -183,8 +176,6 @@
                         Использовать метку
                     </label>
                 </div>
-
-                <!-- Правая часть -->
                 <button type="button"
                         id="createNoteBtn"
                         class="btn btn-sm btn-outline-success"
@@ -193,11 +184,8 @@
                     + Создать новую метку
                 </button>
             </div>
-
-            <!-- BODY -->
             <div class="card-body d-none" id="noteBox">
                 <label asp-for="App.NoteId" class="form-label" id="label-noteid"></label>
-
                 <select class="selectpicker"
                         asp-for="App.NoteId"
                         asp-items="ViewBag.noteList"
@@ -208,15 +196,12 @@
                         aria-describedby="validation-noteid"
                         data-no-notes="@(noNotes ? "true" : "false")">
                 </select>
-
                 <div id="noteInfo" class="mt-2 d-none border-start border-4 border-primary ps-2">
                     <div><b>Заказчик:</b> <span id="customerInfo"></span></div>
                     <div><b>Описание:</b> <span id="descriptionInfo"></span></div>
                 </div>
-
                 <span asp-validation-for="App.NoteId" class="invalid-feedback d-block" id="validation-noteid"></span>
             </div>
-
         </div>
     </div>
 
@@ -230,43 +215,29 @@
 <div class="modal fade" id="noteModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <!-- Форма -->
             <form id="noteForm" class="needs-validation" novalidate>
                 <div class="modal-header">
-                    <h5 class="modal-title">
-                        <svg width="25" height="25" fill="#3498db" class="bi bi-check2-circle" viewBox="0 0 16 16">
-                            <path d="M2.5 8a5.5 5.5 0 0 1 8.25-4.764.5.5 0 0 0 .5-.866A6.5 6.5 0 1 0 14.5 8a.5.5 0 0 0-1 0 5.5 5.5 0 1 1-11 0" />
-                            <path d="M15.354 3.354a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0z" />
-                        </svg>
-                        Новая метка
-                    </h5>
+                    <h5 class="modal-title">Новая метка</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-
                 <div id="noteModalError" class="alert alert-danger d-none mx-3 mt-2 mb-0" role="alert"></div>
-
                 <div class="modal-body">
                     <div class="row g-2">
                         <div class="col-md-6">
                             <label class="form-label" for="noteName">Название</label>
                             <input id="noteName" class="form-control" required minlength="3" aria-describedby="validation-note-name" />
-                            <div class="invalid-feedback" id="validation-note-name">
-                                Введите название (минимум 3 символа)
-                            </div>
+                            <div class="invalid-feedback" id="validation-note-name">Введите название (минимум 3 символа)</div>
                         </div>
-
                         <div class="col-md-6">
                             <label class="form-label" for="noteCustomer">Заказчик</label>
                             <input id="noteCustomer" class="form-control" />
                         </div>
-
                         <div class="col-md-12">
                             <label class="form-label" for="noteDescription">Описание</label>
                             <textarea id="noteDescription" class="form-control"></textarea>
                         </div>
                     </div>
                 </div>
-
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                     <button type="submit" class="btn btn-success" id="saveNote">Сохранить</button>
@@ -276,97 +247,51 @@
     </div>
 </div>
 
-
-
-
-@* <script src="~/js/validationform.js" asp-append-version="true"></script> *@
-
 @section Scripts {
     <script>
         $(function () {
-            const $select = $('.selectpicker');
-
+            var $select = $('.selectpicker');
             $select.selectpicker();
-
             $select.on('changed.bs.select', function () {
-                const $this = $(this);
-                const val = $this.val();
-
-                // Снимаем или добавляем классы Bootstrap
-                if (val && val.length > 0) {
-                    $this.removeClass('is-invalid').addClass('is-valid');
-                } else {
-                    $this.removeClass('is-valid').addClass('is-invalid');
-                }
-
-                // Обновляем состояние валидности для unobtrusive validation
+                var $this = $(this);
+                var val = $this.val();
+                if (val && val.length > 0) { $this.removeClass('is-invalid').addClass('is-valid'); }
+                else { $this.removeClass('is-valid').addClass('is-invalid'); }
                 $this.valid();
             });
-
-            // Блокировка отправки: «Использовать метку» включён, но список меток пуст или метка не выбрана
             $('#addRequestForm').on('submit', function () {
                 if ($('#useNoteCheckbox').is(':checked')) {
                     var noNotes = $('#addRequestForm').data('no-notes') === true || $('#addRequestForm').data('no-notes') === 'true';
-                    if (noNotes) {
-                        $('#noteBox').removeClass('d-none');
-                        var $warn = $('#noteListWarning');
-                        if ($warn.length) $('html, body').animate({ scrollTop: $warn.offset().top - 20 }, 300);
-                        return false;
-                    }
+                    if (noNotes) { $('#noteBox').removeClass('d-none'); return false; }
                     var noteVal = $('#NoteId').val();
                     if (!noteVal || (Array.isArray(noteVal) && noteVal.length === 0)) {
-                        var $noteBox = $('#noteBox');
-                        $noteBox.removeClass('d-none');
-                        $('html, body').animate({ scrollTop: $noteBox.offset().top - 20 }, 300);
+                        $('#noteBox').removeClass('d-none');
+                        $('html, body').animate({ scrollTop: $('#noteBox').offset().top - 20 }, 300);
                         return false;
                     }
                 }
-                window.__clearRequestDraft && window.__clearRequestDraft();
+                if (window.__clearRequestDraft) window.__clearRequestDraft();
             });
         });
     </script>
-
-    @* Черновик: localStorage *@
     <script>
         (function () {
             var DRAFT_KEY = 'AddProductionRequest_draft';
             var saveTimeout;
-
-            function getDraft() {
-                try {
-                    var raw = localStorage.getItem(DRAFT_KEY);
-                    return raw ? JSON.parse(raw) : null;
-                } catch (e) {
-                    return null;
-                }
-            }
-
+            function getDraft() { try { var raw = localStorage.getItem(DRAFT_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; } }
             function setDraft() {
                 var form = document.getElementById('addRequestForm');
                 if (!form) return;
-                var data = {};
-                var fields = {};
+                var data = {}; var fields = {};
                 [].slice.call(form.elements).forEach(function (el) {
                     if (!el.name || el.name === '' || el.type === 'submit' || el.type === 'button') return;
-                    if (el.type === 'checkbox' || el.type === 'radio') {
-                        if (el.type === 'radio' && !el.checked) return;
-                        fields[el.name] = el.checked ? (el.value || 'on') : '';
-                    } else {
-                        fields[el.name] = el.value || '';
-                    }
+                    if (el.type === 'checkbox' || el.type === 'radio') { if (el.type === 'radio' && !el.checked) return; fields[el.name] = el.checked ? (el.value || 'on') : ''; }
+                    else { fields[el.name] = el.value || ''; }
                 });
                 data.fields = fields;
-                try {
-                    localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
-                } catch (e) {}
+                try { localStorage.setItem(DRAFT_KEY, JSON.stringify(data)); } catch (e) {}
             }
-
-            function clearDraft() {
-                try {
-                    localStorage.removeItem(DRAFT_KEY);
-                } catch (e) {}
-            }
-
+            function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); } catch (e) {} }
             function restoreDraft() {
                 var draft = getDraft();
                 if (!draft || !draft.fields) return;
@@ -376,146 +301,67 @@
                     var val = draft.fields[name];
                     var els = form.querySelectorAll('[name="' + name.replace(/"/g, '\\"') + '"]');
                     if (!els.length) return;
-                    if (els[0].type === 'checkbox') {
-                        els[0].checked = (val === (els[0].value || 'on') || val === true || val === 'true');
-                    } else if (els[0].type === 'radio') {
-                        els.forEach(function (r) { r.checked = (r.value === val); });
-                    } else {
-                        els[0].value = val;
-                    }
+                    if (els[0].type === 'checkbox') { els[0].checked = (val === (els[0].value || 'on') || val === true || val === 'true'); }
+                    else if (els[0].type === 'radio') { els.forEach(function (r) { r.checked = (r.value === val); }); }
+                    else { els[0].value = val; }
                 });
                 $('.selectpicker').selectpicker('refresh');
                 $('#useNoteCheckbox').trigger('change');
                 $('#draftRestoreBanner').addClass('d-none');
                 clearDraft();
             }
-
-            $('#draftRestoreBtn').on('click', function () {
-                restoreDraft();
-            });
-            $('#draftDiscardBtn').on('click', function () {
-                clearDraft();
-                $('#draftRestoreBanner').addClass('d-none');
-            });
-
-            if (getDraft()) {
-                $('#draftRestoreBanner').removeClass('d-none');
-            }
-
-            $('#addRequestForm').on('input change', function () {
-                clearTimeout(saveTimeout);
-                saveTimeout = setTimeout(setDraft, 500);
-            });
-
+            $('#draftRestoreBtn').on('click', restoreDraft);
+            $('#draftDiscardBtn').on('click', function () { clearDraft(); $('#draftRestoreBanner').addClass('d-none'); });
+            if (getDraft()) $('#draftRestoreBanner').removeClass('d-none');
+            $('#addRequestForm').on('input change', function () { clearTimeout(saveTimeout); saveTimeout = setTimeout(setDraft, 500); });
             window.__clearRequestDraft = clearDraft;
         })();
     </script>
-
-    @* Note Script *@
     <script>
         $(function () {
-
             function syncNoteUI() {
-                const isChecked = $('#useNoteCheckbox').is(':checked');
-
+                var isChecked = $('#useNoteCheckbox').is(':checked');
                 $('#noteBox').toggleClass('d-none', !isChecked);
                 $('#createNoteBtn').toggleClass('d-none', !isChecked);
             }
-
-            // первичная инициализация при загрузке
             syncNoteUI();
-
-            // Показ / скрытие блока по чекбоксу
-            $('#useNoteCheckbox').on('change', function () {
-                $('#noteBox').toggleClass('d-none', !this.checked);
-                // Показ / скрытие кнопки
-                $('#createNoteBtn').toggleClass('d-none', !this.checked);
-            });
+            $('#useNoteCheckbox').on('change', function () { $('#noteBox').toggleClass('d-none', !this.checked); $('#createNoteBtn').toggleClass('d-none', !this.checked); });
         });
-
-        // Save Note (#NoteId уже инициализирован через .selectpicker выше)
         $(function () {
-            const $form = $('#noteForm');
-            const $select = $('#NoteId');
-            const $modalError = $('#noteModalError');
-
-            function showModalError(msg) {
-                $modalError.text(msg).removeClass('d-none');
-            }
-            function hideModalError() {
-                $modalError.addClass('d-none').text('');
-            }
-
-            $('#noteModal').on('show.bs.modal', hideModalError);
-
+            var $form = $('#noteForm');
+            var $select = $('#NoteId');
+            var $modalError = $('#noteModalError');
+            $('#noteModal').on('show.bs.modal', function () { $modalError.addClass('d-none').text(''); });
             $form.on('submit', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                hideModalError();
+                e.preventDefault(); e.stopPropagation();
+                $modalError.addClass('d-none').text('');
                 $form.addClass('was-validated');
                 if (!$form[0].checkValidity()) return;
-
-                const model = {
-                    Name: $('#noteName').val().trim(),
-                    Customer: $('#noteCustomer').val().trim(),
-                    Description: $('#noteDescription').val().trim()
-                };
-
+                var model = { Name: $('#noteName').val().trim(), Customer: $('#noteCustomer').val().trim(), Description: $('#noteDescription').val().trim() };
                 $.ajax({
                     url: '@Url.Action("CreateNote", "Notes")',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(model),
                     success: function (result) {
-                        if (!result.success) {
-                            showModalError(result.message || 'Ошибка сервера');
-                            return;
-                        }
+                        if (!result.success) { $modalError.text(result.message || 'Ошибка сервера').removeClass('d-none'); return; }
                         $('#noteModal').modal('hide');
-                        hideModalError();
-                        updateSelectPicker($select, result.notes, result.newNoteId);
-                        $form[0].reset();
-                        $form.removeClass('was-validated');
+                        $select.selectpicker('destroy'); $select.empty();
+                        if (result.notes) result.notes.forEach(function (opt) { $select.append($('<option>', { value: opt.id, text: opt.text })); });
+                        $select.selectpicker({ liveSearch: true, width: '100%' });
+                        if (result.newNoteId) { $select.selectpicker('val', result.newNoteId); $select.selectpicker('render'); }
+                        $form[0].reset(); $form.removeClass('was-validated');
                         $('#noteBox').removeClass('d-none');
-                        $('html, body').animate({ scrollTop: $('#noteBox').offset().top - 20 }, 300);
-                        const $noteBtn = $('#NoteId').next('.bootstrap-select').find('button');
-                        if ($noteBtn.length) $noteBtn[0].focus();
+                        $('#NoteId').trigger('changed.bs.select');
                     },
-                    error: function () {
-                        showModalError('Ошибка при сохранении метки');
-                    }
+                    error: function () { $modalError.text('Ошибка при сохранении метки').removeClass('d-none'); }
                 });
             });
-
-            function updateSelectPicker($select, options, selectedId) {
-                if (!$select || !options) return;
-                $select.selectpicker('destroy');
-                $select.empty();
-                options.forEach(function (opt) {
-                    $select.append($('<option>', { value: opt.id, text: opt.text }));
-                });
-                $select.selectpicker({ liveSearch: true, width: '100%' });
-                if (selectedId) {
-                    $select.selectpicker('val', selectedId);
-                    $select.selectpicker('render');
-                }
-                $('#NoteId').trigger('changed.bs.select');
-            }
         });
-
-        // Update Selected Note info
-        // Делегированное событие changed.bs.select
         $(document).on('changed.bs.select', '#NoteId', function () {
-            const id = $(this).val();
-            if (!id) {
-                $('#noteInfo').addClass('d-none');
-                return;
-            }
-
-            $.ajax({
-                url: '/Notes/GetNoteInfo',
-                type: 'GET',
-                data: { id: id },
+            var id = $(this).val();
+            if (!id) { $('#noteInfo').addClass('d-none'); return; }
+            $.ajax({ url: '/Notes/GetNoteInfo', type: 'GET', data: { id: id },
                 success: function (data) {
                     $('#noteInfo').removeClass('d-none');
                     $('#customerInfo').text(data.customer ?? '—');
@@ -523,12 +369,5 @@
                 }
             });
         });
-
-
-
     </script>
 }
-
-
-
-

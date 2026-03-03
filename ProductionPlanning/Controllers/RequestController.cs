@@ -47,7 +47,7 @@ namespace ProductionPlanning.Controllers
             }
 
             await FillAddRequestViewBagAsync(model.App.MonthDatePlanning);
-            return View("AddProductionRequestSingle", model);
+            return View(model);
         }
 
         private async Task FillAddRequestViewBagAsync(DateTime monthDatePlanning)
@@ -106,7 +106,7 @@ namespace ProductionPlanning.Controllers
             if (!ModelState.IsValid)
             {
                 await FillAddRequestViewBagAsync(model.App.MonthDatePlanning);
-                return View("AddProductionRequestSingle", model);
+                return View(model);
             }
             try
             {
@@ -153,7 +153,7 @@ namespace ProductionPlanning.Controllers
                 _logger.LogError(ex.Message);
                 TempData["ErrorMessage"] = $"Ошибка данных: {ex.Message}";
                 await FillAddRequestViewBagAsync(model.App.MonthDatePlanning);
-                return View("AddProductionRequestSingle", model);
+                return View(model);
             }
         }
 
