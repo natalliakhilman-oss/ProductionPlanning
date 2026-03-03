@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting.WindowsServices;
+using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation;
 using System.Reflection;
 using ProductionPlanning.Hubs;
 
@@ -42,7 +43,9 @@ if (isService)
 #endregion Services
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+var mvcBuilder = builder.Services.AddControllersWithViews();
+if (builder.Environment.IsDevelopment())
+    mvcBuilder.AddRazorRuntimeCompilation();
 
 // DBContext
 #region ConnectionDB

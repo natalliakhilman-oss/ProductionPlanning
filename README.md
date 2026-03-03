@@ -4,6 +4,17 @@ ASP.NET Core приложение с MySQL/SQLite, Identity и SignalR.
 
 **Репозиторий:** [https://github.com/natalliakhilman-oss/ProductionPlanning](https://github.com/natalliakhilman-oss/ProductionPlanning)
 
+## Важно: где вы открываете приложение
+
+- **Локально** (запуск `run.bat` или `run.ps1` на своём ПК) — в браузере открывается **http://localhost:5185**. Используются файлы с вашего диска. Все правки в коде видны после перезапуска.
+- **В облаке** (Railway, Render и т.п.) — открывается URL вида `https://ваш-сервис.railway.app`. Там крутится версия, **собранная из GitHub**. Локальные правки туда не попадают, пока вы не сделаете **git push** в репозиторий. После пуша хостинг пересоберёт приложение, и изменения появятся на сайте.
+
+Если вы смотрите приложение по облачному URL и не видите изменений — закоммитьте и запушьте их в GitHub (см. ниже).
+
+## Локальный запуск
+
+Из корня репозитория запустите `run.bat` (Windows) или `run.ps1` (PowerShell). Откройте в браузере: **http://localhost:5185**.
+
 ## GitHub
 
 1. Создайте репозиторий на [GitHub](https://github.com/new).
@@ -18,7 +29,16 @@ git remote add origin https://github.com/natalliakhilman-oss/ProductionPlanning.
 git push -u origin main
 ```
 
-3. При каждом пуше в `main`/`master` запускается CI (сборка в `.github/workflows/ci.yml`).
+3. При каждом пуше в `main`/`master` запускается CI (сборка в `.github/workflows/ci.yml`). Если приложение задеплоено из этого репозитория (Railway, Render и т.д.), после `git push` хостинг пересоберёт проект и изменения появятся на сайте.
+
+**Отправить локальные изменения в GitHub (чтобы обновился облачный сайт):**
+```bash
+git add .
+git status
+git commit -m "Новая заявка: одна форма вместо 3 шагов"
+git push origin main
+```
+После пуша подождите 1–3 минуты, пока хостинг пересоберёт приложение, затем обновите страницу в браузере (лучше Ctrl+F5).
 
 ## База данных
 
