@@ -20,6 +20,10 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Clean (no cached views)
+        run: rm -rf ProductionPlanning/obj ProductionPlanning/bin
+        working-directory: .
+
       - name: Restore
         run: dotnet restore
         working-directory: ProductionPlanning
