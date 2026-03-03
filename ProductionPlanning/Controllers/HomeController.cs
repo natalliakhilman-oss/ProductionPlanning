@@ -48,10 +48,9 @@ namespace ProductionPlanning.Controllers
 
         [Authorize(Roles = Role.Administrator)]
         [Authorize(Roles = Role.Seller)]
-        public IActionResult AddProductionRequest()
+        public IActionResult AddProductionRequest(int id = 0)
         {
-            var model = new ProductRequest();
-            return View(model);
+            return RedirectToAction("AddProductionRequest", "Request", new { _id = id });
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
